@@ -1,10 +1,10 @@
-import type { AccountStatus, AdminSalesStatus, ProfileStatus, SalesLeadsFilters } from '@/api/types'
+import type { AdminSalesStatus, DeletedSalesLeadsFilters, ProfileStatus } from '@/api/types'
 import { birthYearForLeadsApi } from '@/pages/sales/salesConstants'
 import { isValidMinIncomeBandId } from '@/pages/sales/salesIncomeBands'
-import { toUtcIso } from '@/utils/date'
+import { toDatetimeLocalInput, toUtcIso } from '@/utils/date'
 
-/** sessionStorage key for last Sales list query string (no leading `?`). */
-export const SALES_LIST_SEARCH_STORAGE_KEY = 'qalbi.admin.salesListSearch'
+/** sessionStorage key for last Deleted Accounts list query string (no leading `?`). */
+export const DELETED_ACCOUNTS_LIST_SEARCH_STORAGE_KEY = 'qalbi.sales.deletedAccountsListSearch'
 
 const SALES_STATUSES = new Set<string>([
   'ALL',
@@ -18,17 +18,15 @@ const SALES_STATUSES = new Set<string>([
   'CONVERTED',
 ])
 
-const ACCOUNT = new Set<string>(['ACTIVE', 'ANY', 'DELETED', 'BANNED'])
 const PROFILE = new Set<string>(['APPROVED', 'ANY', 'PENDING', 'REJECTED'])
 
-export interface SalesListUrlState {
+export interface DeletedAccountsListUrlState {
   start: string
   end: string
   followUpStart: string
   followUpEnd: string
   status: 'ALL' | AdminSalesStatus
   query: string
-  accountStatus: AccountStatus | 'ANY'
   profileStatus: ProfileStatus | 'ANY'
   gender: string
   birthYear: string
@@ -45,14 +43,13 @@ export interface SalesListUrlState {
   page: number
 }
 
-export const defaultSalesListUrlState = (): SalesListUrlState => ({
+export const defaultDeletedAccountsListUrlState = (): DeletedAccountsListUrlState => ({
   start: '',
   end: '',
   followUpStart: '',
   followUpEnd: '',
   status: 'ALL',
   query: '',
-  accountStatus: 'ACTIVE',
   profileStatus: 'APPROVED',
   gender: '',
   birthYear: '',
@@ -79,27 +76,28 @@ function parseTriFlag(raw: string | null): '' | 'true' {
   return raw === 'true' ? 'true' : ''
 }
 
-export function parseSalesListSearchParams(searchParams: URLSearchParams): SalesListUrlState {
-  const defaults = defaultSalesListUrlState()
+export function parseDeletedAccountsListSearchParams(searchParams: URLSearchParams): DeletedAccountsListUrlState {
+  const defaults = defaultDeletedAccountsListUrlState()
   const statusRaw = searchParams.get('status') ?? 'ALL'
-  const status = SALES_STATUSES.has(statusRaw) ? (statusRaw as SalesListUrlState['status']) : defaults.status
-
-  const accountRaw = searchParams.get('accountStatus') ?? defaults.accountStatus
-  const accountStatus = ACCOUNT.has(accountRaw) ? (accountRaw as SalesListUrlState['accountStatus']) : defaults.accountStatus
+  const status = SALES_STATUSES.has(statusRaw)
+    ? (statusRaw as DeletedAccountsListUrlState['status'])
+    : defaults.status
 
   const profileRaw = searchParams.get('profileStatus') ?? defaults.profileStatus
-  const profileStatus = PROFILE.has(profileRaw) ? (profileRaw as SalesListUrlState['profileStatus']) : defaults.profileStatus
+  const profileStatus = PROFILE.has(profileRaw)
+    ? (profileRaw as DeletedAccountsListUrlState['profileStatus'])
+    : defaults.profileStatus
 
   const sub = searchParams.get('subscribed')
-  const subscribedTri: SalesListUrlState['subscribedTri'] =
+  const subscribedTri: DeletedAccountsListUrlState['subscribedTri'] =
     sub === 'true' || sub === 'false' ? sub : ''
 
   const ver = searchParams.get('verifiedProfile')
-  const verifiedTri: SalesListUrlState['verifiedTri'] =
+  const verifiedTri: DeletedAccountsListUrlState['verifiedTri'] =
     ver === 'true' || ver === 'false' ? ver : ''
 
   const sortRaw = searchParams.get('sort')
-  const sort: SalesListUrlState['sort'] = sortRaw === 'leadScore' ? 'leadScore' : ''
+  const sort: DeletedAccountsListUrlState['sort'] = sortRaw === 'leadScore' ? 'leadScore' : ''
 
   const minIncomeRaw = searchParams.get('minIncomeBandId') ?? ''
   const minIncomeBandId = isValidMinIncomeBandId(minIncomeRaw) ? minIncomeRaw : ''
@@ -111,7 +109,6 @@ export function parseSalesListSearchParams(searchParams: URLSearchParams): Sales
     followUpEnd: searchParams.get('followUpEnd') ?? '',
     status,
     query: searchParams.get('query') ?? '',
-    accountStatus,
     profileStatus,
     gender: searchParams.get('gender') ?? '',
     birthYear: searchParams.get('birthYear') ?? '',
@@ -129,9 +126,8 @@ export function parseSalesListSearchParams(searchParams: URLSearchParams): Sales
   }
 }
 
-/** Build query string object for React Router `setSearchParams`. Omits default-valued keys. */
-export function toSalesListSearchParams(state: SalesListUrlState): URLSearchParams {
-  const defaults = defaultSalesListUrlState()
+export function toDeletedAccountsListSearchParams(state: DeletedAccountsListUrlState): URLSearchParams {
+  const defaults = defaultDeletedAccountsListUrlState()
   const p = new URLSearchParams()
 
   if (state.start) p.set('start', state.start)
@@ -140,7 +136,6 @@ export function toSalesListSearchParams(state: SalesListUrlState): URLSearchPara
   if (state.followUpEnd) p.set('followUpEnd', state.followUpEnd)
   if (state.status !== defaults.status) p.set('status', state.status)
   if (state.query) p.set('query', state.query)
-  if (state.accountStatus !== defaults.accountStatus) p.set('accountStatus', state.accountStatus)
   if (state.profileStatus !== defaults.profileStatus) p.set('profileStatus', state.profileStatus)
   if (state.gender.trim()) p.set('gender', state.gender)
   if (state.birthYear.trim()) p.set('birthYear', state.birthYear.trim())
@@ -159,12 +154,14 @@ export function toSalesListSearchParams(state: SalesListUrlState): URLSearchPara
   return p
 }
 
-/** Serialize filters for URL or sessionStorage (empty string when all defaults). */
-export function serializeSalesListFiltersForStorage(state: SalesListUrlState): string {
-  return toSalesListSearchParams(state).toString()
+export function serializeDeletedAccountsFiltersForStorage(state: DeletedAccountsListUrlState): string {
+  return toDeletedAccountsListSearchParams(state).toString()
 }
 
-export function salesListStateToApiFilters(parsed: SalesListUrlState, pageSize: number): SalesLeadsFilters {
+export function deletedAccountsListStateToApiFilters(
+  parsed: DeletedAccountsListUrlState,
+  pageSize: number,
+): DeletedSalesLeadsFilters {
   return {
     start: toUtcIso(parsed.start),
     end: toUtcIso(parsed.end),
@@ -172,7 +169,6 @@ export function salesListStateToApiFilters(parsed: SalesListUrlState, pageSize: 
     followUpStart: toUtcIso(parsed.followUpStart),
     followUpEnd: toUtcIso(parsed.followUpEnd),
     query: parsed.query.trim() || undefined,
-    accountStatus: parsed.accountStatus === 'ANY' ? undefined : parsed.accountStatus,
     profileStatus: parsed.profileStatus === 'ANY' ? undefined : parsed.profileStatus,
     gender: parsed.gender.trim() || undefined,
     birthYear: birthYearForLeadsApi(parsed.birthYear),
@@ -191,9 +187,11 @@ export function salesListStateToApiFilters(parsed: SalesListUrlState, pageSize: 
   }
 }
 
-export type SalesListViewPreset = 'all' | 'pool' | 'my_leads'
+export type DeletedAccountsListViewPreset = 'all' | 'pool' | 'my_leads'
 
-export function salesListPresetPatch(preset: SalesListViewPreset): Partial<SalesListUrlState> {
+export function deletedAccountsListPresetPatch(
+  preset: DeletedAccountsListViewPreset,
+): Partial<DeletedAccountsListUrlState> {
   if (preset === 'pool') {
     return { pool: 'true', assignedToMe: '', page: 0 }
   }
@@ -203,8 +201,20 @@ export function salesListPresetPatch(preset: SalesListViewPreset): Partial<Sales
   return { pool: '', assignedToMe: '', page: 0 }
 }
 
-export function activeSalesListPreset(parsed: SalesListUrlState): SalesListViewPreset {
+export function activeDeletedAccountsListPreset(
+  parsed: DeletedAccountsListUrlState,
+): DeletedAccountsListViewPreset {
   if (parsed.pool === 'true') return 'pool'
   if (parsed.assignedToMe === 'true') return 'my_leads'
   return 'all'
+}
+
+/** Client-side deletion date presets (7 / 30 / 90 days) as datetime-local values. */
+export function deletionRangePreset(days: 7 | 30 | 90): { start: string; end: string } {
+  const end = new Date()
+  const start = new Date(end.getTime() - days * 86400000)
+  return {
+    start: toDatetimeLocalInput(start.toISOString()),
+    end: toDatetimeLocalInput(end.toISOString()),
+  }
 }

@@ -80,6 +80,29 @@ describe('salesListSearchParams', () => {
     expect(birthYearForLeadsApi('2000')).toBe(2000)
   })
 
+  it('round-trips minIncomeBandId in URL', () => {
+    const state = {
+      ...defaultSalesListUrlState(),
+      minIncomeBandId: 'INC_IN_30_40',
+    }
+    expect(roundTrip(state)).toEqual(state)
+  })
+
+  it('parses invalid minIncomeBandId in URL as empty', () => {
+    const parsed = parseSalesListSearchParams(new URLSearchParams('minIncomeBandId=INVALID_BAND'))
+    expect(parsed.minIncomeBandId).toBe('')
+  })
+
+  it('maps valid minIncomeBandId to API filters', () => {
+    const parsed = { ...defaultSalesListUrlState(), minIncomeBandId: 'INC_IN_30_40' }
+    expect(salesListStateToApiFilters(parsed, 20).minIncomeBandId).toBe('INC_IN_30_40')
+  })
+
+  it('omits invalid minIncomeBandId from API filters', () => {
+    const parsed = { ...defaultSalesListUrlState(), minIncomeBandId: 'INVALID_BAND' }
+    expect(salesListStateToApiFilters(parsed, 20).minIncomeBandId).toBeUndefined()
+  })
+
   it('round-trips datetime-local fragments in URL', () => {
     const state = {
       ...defaultSalesListUrlState(),

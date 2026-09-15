@@ -254,6 +254,8 @@ export interface AdminSalesLeadSummary {
   outcomeReason: AdminSalesOutcomeReason | null
   convertedAt: IsoInstant | null
   leadScore: number
+  incomeLabel?: string | null
+  incomePerYearUsd?: number | null
   updatedAt: IsoInstant | null
 }
 
@@ -290,6 +292,52 @@ export interface AdminSalesLeadDetailResponse {
   leadScore: number
   salesCreatedAt: IsoInstant | null
   salesUpdatedAt: IsoInstant | null
+}
+
+export type AdminSalesViewScope = 'LIVE' | 'DELETED'
+
+export interface AdminDeletedSalesLeadSummary {
+  userId: string
+  memberId: string | null
+  phone: string | null
+  fullName: string | null
+  gender: string | null
+  city: string | null
+  state: string | null
+  country: string | null
+  createdAt: IsoInstant | null
+  profileStatus: string | null
+  accountStatus: string | null
+  subscribed: boolean
+  salesStatus: string
+  note: string | null
+  followUpAt: IsoInstant | null
+  lastCalledAt: IsoInstant | null
+  assignedToAdminId: string | null
+  claimedAt: IsoInstant | null
+  outcomeReason: AdminSalesOutcomeReason | null
+  convertedAt: IsoInstant | null
+  leadScore: number
+  incomeLabel?: string | null
+  incomePerYearUsd?: number | null
+  updatedAt: IsoInstant | null
+  softDeletedAt?: IsoInstant | null
+  purgedAt?: IsoInstant | null
+  deletionAt?: IsoInstant | null
+}
+
+export interface AdminDeletedSalesLeadSearchResponse {
+  items: AdminDeletedSalesLeadSummary[]
+  page: number
+  size: number
+  total: number
+}
+
+export interface AdminDeletedSalesLeadDetailResponse extends AdminSalesLeadDetailResponse {
+  softDeletedAt?: IsoInstant | null
+  purgedAt?: IsoInstant | null
+  deletionAt?: IsoInstant | null
+  authCreatedAt?: IsoInstant | null
 }
 
 export interface UpdateSalesStatusRequest {
@@ -364,6 +412,7 @@ export interface AdminSalesSavedViewSummary {
   ownerEmployeeId: string
   name: string
   filtersJson: string
+  scope?: AdminSalesViewScope
   createdAt: IsoInstant
   updatedAt: IsoInstant
 }
@@ -436,6 +485,8 @@ export interface SalesLeadsFilters {
   maritalStatus?: string
   state?: string
   city?: string
+  /** Hardcoded band id e.g. INC_IN_30_40 — see salesIncomeBands.ts */
+  minIncomeBandId?: string
   pool?: boolean
   /** Staff employeeId, or literal UNASSIGNED */
   assignedToAdminId?: string
@@ -446,6 +497,9 @@ export interface SalesLeadsFilters {
   page?: number
   size?: number
 }
+
+/** Same as SalesLeadsFilters but no accountStatus (archives only). start/end = deletionAt. */
+export type DeletedSalesLeadsFilters = Omit<SalesLeadsFilters, 'accountStatus'>
 
 export interface SalesFollowUpsFilters {
   bucket?: 'due_today' | 'overdue' | 'upcoming'

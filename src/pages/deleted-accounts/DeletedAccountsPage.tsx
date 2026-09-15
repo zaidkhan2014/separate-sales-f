@@ -8,10 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useAdminSalesLeads, useAdminSalesSummary } from '@/hooks/api/useAdminSales'
+import { useAdminDeletedSalesLeads, useAdminDeletedSalesSummary } from '@/hooks/api/useAdminDeletedSales'
 import type { AdminSalesStatus } from '@/api/types'
 import { cn } from '@/lib/cn'
-import { SalesSavedViews } from '@/pages/sales/SalesSavedViews'
+import { DeletedAccountsSavedViews } from '@/pages/deleted-accounts/DeletedAccountsSavedViews'
 import {
   ADMIN_SALES_STATUS_FILTER_OPTIONS,
   birthYearForLeadsApi,
@@ -22,65 +22,66 @@ import {
   INTL_MIN_INCOME_BANDS,
 } from '@/pages/sales/salesIncomeBands'
 import {
-  SALES_LIST_SEARCH_STORAGE_KEY,
-  activeSalesListPreset,
-  parseSalesListSearchParams,
-  salesListPresetPatch,
-  salesListStateToApiFilters,
-  toSalesListSearchParams,
-  type SalesListUrlState,
-} from '@/pages/sales/salesListSearchParams'
+  DELETED_ACCOUNTS_LIST_SEARCH_STORAGE_KEY,
+  activeDeletedAccountsListPreset,
+  deletionRangePreset,
+  parseDeletedAccountsListSearchParams,
+  deletedAccountsListPresetPatch,
+  deletedAccountsListStateToApiFilters,
+  toDeletedAccountsListSearchParams,
+  type DeletedAccountsListUrlState,
+} from '@/pages/deleted-accounts/deletedAccountsListSearchParams'
 import { routes } from '@/router/paths'
 import { formatCompactNumber, formatDateTime } from '@/utils/format'
 
 const PAGE_SIZE = 20
 
-export default function SalesPage() {
+export default function DeletedAccountsPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
-  const parsed = useMemo(() => parseSalesListSearchParams(searchParams), [searchParams])
+  const parsed = useMemo(() => parseDeletedAccountsListSearchParams(searchParams), [searchParams])
   const didHydrateFromStorageRef = useRef(false)
-  const viewPreset = activeSalesListPreset(parsed)
+  const viewPreset = activeDeletedAccountsListPreset(parsed)
 
   const setFilters = useCallback(
-    (patch: Partial<SalesListUrlState>) => {
+    (patch: Partial<DeletedAccountsListUrlState>) => {
       const next = { ...parsed, ...patch }
-      setSearchParams(toSalesListSearchParams(next), { replace: true })
+      setSearchParams(toDeletedAccountsListSearchParams(next), { replace: true })
     },
     [parsed, setSearchParams],
   )
 
   useEffect(() => {
-    if (location.pathname !== routes.leads) return
+    if (location.pathname !== routes.deletedAccounts) return
 
     const spStr = searchParams.toString()
 
     if (!spStr && !didHydrateFromStorageRef.current) {
       let stored: string | null = null
       try {
-        stored = sessionStorage.getItem(SALES_LIST_SEARCH_STORAGE_KEY)
+        stored = sessionStorage.getItem(DELETED_ACCOUNTS_LIST_SEARCH_STORAGE_KEY)
       } catch {
         /* ignore */
       }
       if (stored) {
         didHydrateFromStorageRef.current = true
-        navigate({ pathname: routes.leads, search: stored }, { replace: true })
+        navigate({ pathname: routes.deletedAccounts, search: stored }, { replace: true })
         return
       }
     }
 
     try {
-      sessionStorage.setItem(SALES_LIST_SEARCH_STORAGE_KEY, spStr)
+      sessionStorage.setItem(DELETED_ACCOUNTS_LIST_SEARCH_STORAGE_KEY, spStr)
     } catch {
       /* ignore quota / private mode */
     }
   }, [location.pathname, navigate, searchParams])
 
-  const filters = useMemo(() => salesListStateToApiFilters(parsed, PAGE_SIZE), [parsed])
+  const filters = useMemo(() => deletedAccountsListStateToApiFilters(parsed, PAGE_SIZE), [parsed])
 
-  const leadsQuery = useAdminSalesLeads(filters)
-  const summaryQuery = useAdminSalesSummary({ start: filters.start, end: filters.end })
+  const leadsQuery = useAdminDeletedSalesLeads(filters)
+  const summaryQuery = useAdminDeletedSalesSummary({ start: filters.start, end: filters.end })
 
   const totalPages = useMemo(() => {
     const total = leadsQuery.data?.total ?? 0
@@ -92,7 +93,7 @@ export default function SalesPage() {
 
   return (
     <section className="min-w-0 space-y-4">
-      <PageHeader title="Sales" description="Manage lead pipeline, follow-ups, and sales outcomes." />
+      <PageHeader title="Deleted Accounts" description="Purged account archives with sales CRM history." />
 
       <div className="flex flex-wrap gap-2">
         {(['all', 'pool', 'my_leads'] as const).map((preset) => (
@@ -105,7 +106,7 @@ export default function SalesPage() {
                 ? 'border-slate-900 bg-slate-900 text-white'
                 : 'border-slate-200 text-slate-600 hover:bg-slate-50',
             )}
-            onClick={() => setFilters(salesListPresetPatch(preset))}
+            onClick={() => setFilters(deletedAccountsListPresetPatch(preset))}
           >
             {preset === 'all' ? 'All leads' : preset === 'pool' ? 'Pool' : 'My leads'}
           </button>
@@ -121,35 +122,50 @@ export default function SalesPage() {
           </p>
         </CardHeader>
         <CardContent className="min-w-0 space-y-6 overflow-x-auto pt-0">
-          <SalesSavedViews
+          <DeletedAccountsSavedViews
             currentSearch={location.search}
-            onLoadView={(search) => navigate({ pathname: routes.leads, search }, { replace: true })}
+            onLoadView={(search) => navigate({ pathname: routes.deletedAccounts, search }, { replace: true })}
           />
 
           <div className="space-y-2">
-            <h4 className="text-sm font-semibold text-slate-900">Profile created</h4>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h4 className="text-sm font-semibold text-slate-900">Deleted</h4>
+              <div className="flex flex-wrap gap-2">
+                {([7, 30, 90] as const).map((days) => (
+                  <button
+                    key={days}
+                    type="button"
+                    className="rounded-full border border-slate-200 px-2.5 py-0.5 text-xs text-slate-600 hover:bg-slate-50"
+                    onClick={() => setFilters({ ...deletionRangePreset(days), page: 0 })}
+                  >
+                    Last {days}d
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
               <label className="block min-w-0 text-sm text-slate-600">
                 <span className="mb-1 block font-medium text-slate-800">From</span>
                 <Input
-                  id="sales-filter-profile-start"
+                  id="deleted-filter-deletion-start"
                   type="datetime-local"
                   value={parsed.start}
                   onChange={(event) => setFilters({ start: event.target.value, page: 0 })}
-                  aria-label="Profile created from"
+                  aria-label="Deleted from"
                 />
               </label>
               <label className="block min-w-0 text-sm text-slate-600">
                 <span className="mb-1 block font-medium text-slate-800">To</span>
                 <Input
-                  id="sales-filter-profile-end"
+                  id="deleted-filter-deletion-end"
                   type="datetime-local"
                   value={parsed.end}
                   onChange={(event) => setFilters({ end: event.target.value, page: 0 })}
-                  aria-label="Profile created to"
+                  aria-label="Deleted to"
                 />
               </label>
             </div>
+            <p className="text-xs text-slate-500">Filters by deletion time (softDeletedAt, else purgedAt).</p>
           </div>
 
           <div className="space-y-2 border-t border-slate-100 pt-4">
@@ -158,7 +174,7 @@ export default function SalesPage() {
               <label className="block min-w-0 text-sm text-slate-600">
                 <span className="mb-1 block font-medium text-slate-800">From</span>
                 <Input
-                  id="sales-filter-followup-start"
+                  id="deleted-filter-followup-start"
                   type="datetime-local"
                   value={parsed.followUpStart}
                   onChange={(event) => setFilters({ followUpStart: event.target.value, page: 0 })}
@@ -168,7 +184,7 @@ export default function SalesPage() {
               <label className="block min-w-0 text-sm text-slate-600">
                 <span className="mb-1 block font-medium text-slate-800">To</span>
                 <Input
-                  id="sales-filter-followup-end"
+                  id="deleted-filter-followup-end"
                   type="datetime-local"
                   value={parsed.followUpEnd}
                   onChange={(event) => setFilters({ followUpEnd: event.target.value, page: 0 })}
@@ -182,32 +198,13 @@ export default function SalesPage() {
             <h4 className="text-sm font-semibold text-slate-900">Profile filters</h4>
             <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <label className="block min-w-0 text-sm text-slate-600">
-                <span className="mb-1 block font-medium text-slate-800">Account status</span>
-                <Select
-                  id="sales-filter-account-status"
-                  value={parsed.accountStatus}
-                  onChange={(event) => {
-                    setFilters({
-                      accountStatus: event.target.value as SalesListUrlState['accountStatus'],
-                      page: 0,
-                    })
-                  }}
-                  aria-label="Filter by account status"
-                >
-                  <option value="ACTIVE">Active (default)</option>
-                  <option value="ANY">Any</option>
-                  <option value="DELETED">Deleted</option>
-                  <option value="BANNED">Banned</option>
-                </Select>
-              </label>
-              <label className="block min-w-0 text-sm text-slate-600">
                 <span className="mb-1 block font-medium text-slate-800">Profile status</span>
                 <Select
-                  id="sales-filter-profile-status"
+                  id="deleted-filter-profile-status"
                   value={parsed.profileStatus}
                   onChange={(event) => {
                     setFilters({
-                      profileStatus: event.target.value as SalesListUrlState['profileStatus'],
+                      profileStatus: event.target.value as DeletedAccountsListUrlState['profileStatus'],
                       page: 0,
                     })
                   }}
@@ -222,7 +219,7 @@ export default function SalesPage() {
               <label className="block min-w-0 text-sm text-slate-600">
                 <span className="mb-1 block font-medium text-slate-800">Gender (exact match)</span>
                 <Input
-                  id="sales-filter-gender"
+                  id="deleted-filter-gender"
                   placeholder="e.g. Male"
                   value={parsed.gender}
                   onChange={(event) => setFilters({ gender: event.target.value, page: 0 })}
@@ -232,7 +229,7 @@ export default function SalesPage() {
               <label className="block min-w-0 text-sm text-slate-600">
                 <span className="mb-1 block font-medium text-slate-800">Born on or before (year)</span>
                 <Input
-                  id="sales-filter-birth-year"
+                  id="deleted-filter-birth-year"
                   type="text"
                   inputMode="numeric"
                   autoComplete="off"
@@ -254,7 +251,7 @@ export default function SalesPage() {
               <label className="block min-w-0 text-sm text-slate-600">
                 <span className="mb-1 block font-medium text-slate-800">Marital status (exact match)</span>
                 <Input
-                  id="sales-filter-marital-status"
+                  id="deleted-filter-marital-status"
                   placeholder="e.g. Never married"
                   value={parsed.maritalStatus}
                   onChange={(event) => setFilters({ maritalStatus: event.target.value, page: 0 })}
@@ -264,7 +261,7 @@ export default function SalesPage() {
               <label className="block min-w-0 text-sm text-slate-600">
                 <span className="mb-1 block font-medium text-slate-800">State (exact match)</span>
                 <Input
-                  id="sales-filter-state"
+                  id="deleted-filter-state"
                   placeholder="e.g. Uttar Pradesh"
                   value={parsed.state}
                   onChange={(event) => setFilters({ state: event.target.value, page: 0 })}
@@ -274,7 +271,7 @@ export default function SalesPage() {
               <label className="block min-w-0 text-sm text-slate-600">
                 <span className="mb-1 block font-medium text-slate-800">City (exact match)</span>
                 <Input
-                  id="sales-filter-city"
+                  id="deleted-filter-city"
                   placeholder="e.g. Lucknow"
                   value={parsed.city}
                   onChange={(event) => setFilters({ city: event.target.value, page: 0 })}
@@ -284,7 +281,7 @@ export default function SalesPage() {
               <label className="block min-w-0 text-sm text-slate-600">
                 <span className="mb-1 block font-medium text-slate-800">Minimum income</span>
                 <Select
-                  id="sales-filter-min-income"
+                  id="deleted-filter-min-income"
                   value={parsed.minIncomeBandId}
                   onChange={(event) => setFilters({ minIncomeBandId: event.target.value, page: 0 })}
                   aria-label="Filter by minimum income band"
@@ -312,11 +309,11 @@ export default function SalesPage() {
               <label className="block min-w-0 text-sm text-slate-600">
                 <span className="mb-1 block font-medium text-slate-800">Subscribed</span>
                 <Select
-                  id="sales-filter-subscribed"
+                  id="deleted-filter-subscribed"
                   value={parsed.subscribedTri}
                   onChange={(event) => {
                     setFilters({
-                      subscribedTri: event.target.value as SalesListUrlState['subscribedTri'],
+                      subscribedTri: event.target.value as DeletedAccountsListUrlState['subscribedTri'],
                       page: 0,
                     })
                   }}
@@ -330,11 +327,11 @@ export default function SalesPage() {
               <label className="block min-w-0 text-sm text-slate-600">
                 <span className="mb-1 block font-medium text-slate-800">Verified profile</span>
                 <Select
-                  id="sales-filter-verified"
+                  id="deleted-filter-verified"
                   value={parsed.verifiedTri}
                   onChange={(event) => {
                     setFilters({
-                      verifiedTri: event.target.value as SalesListUrlState['verifiedTri'],
+                      verifiedTri: event.target.value as DeletedAccountsListUrlState['verifiedTri'],
                       page: 0,
                     })
                   }}
@@ -352,7 +349,7 @@ export default function SalesPage() {
             <label className="block min-w-0 text-sm text-slate-600">
               <span className="mb-1 block font-medium text-slate-800">Sales status</span>
               <Select
-                id="sales-filter-status"
+                id="deleted-filter-status"
                 value={parsed.status}
                 onChange={(event) => {
                   setFilters({
@@ -372,7 +369,7 @@ export default function SalesPage() {
             <label className="block min-w-0 text-sm text-slate-600">
               <span className="mb-1 block font-medium text-slate-800">Search</span>
               <Input
-                id="sales-filter-search"
+                id="deleted-filter-search"
                 placeholder="User ID, member ID, phone, or name"
                 value={parsed.query}
                 onChange={(event) => setFilters({ query: event.target.value, page: 0 })}
@@ -382,11 +379,11 @@ export default function SalesPage() {
             <label className="block min-w-0 text-sm text-slate-600">
               <span className="mb-1 block font-medium text-slate-800">Sort</span>
               <Select
-                id="sales-filter-sort"
+                id="deleted-filter-sort"
                 value={parsed.sort}
                 onChange={(event) => {
                   setFilters({
-                    sort: event.target.value as SalesListUrlState['sort'],
+                    sort: event.target.value as DeletedAccountsListUrlState['sort'],
                     page: 0,
                   })
                 }}
@@ -399,7 +396,7 @@ export default function SalesPage() {
             <label className="block min-w-0 text-sm text-slate-600">
               <span className="mb-1 block font-medium text-slate-800">Assigned to (employeeId)</span>
               <Input
-                id="sales-filter-assigned"
+                id="deleted-filter-assigned"
                 placeholder="SALES001 or UNASSIGNED"
                 value={parsed.assignedToAdminId}
                 onChange={(event) => setFilters({ assignedToAdminId: event.target.value, page: 0 })}
@@ -459,6 +456,7 @@ export default function SalesPage() {
                   <th className="px-3 py-2">Assigned</th>
                   <th className="px-3 py-2">Score</th>
                   <th className="px-3 py-2">Income</th>
+                  <th className="px-3 py-2">Deleted</th>
                   <th className="px-3 py-2">Outcome</th>
                   <th className="px-3 py-2">Note</th>
                   <th className="px-3 py-2">Follow-up</th>
@@ -475,14 +473,15 @@ export default function SalesPage() {
                     <td className="px-3 py-2">{lead.assignedToAdminId ?? '--'}</td>
                     <td className="px-3 py-2">{lead.leadScore ?? '--'}</td>
                     <td className="px-3 py-2">{lead.incomeLabel ?? '--'}</td>
+                    <td className="px-3 py-2">{formatDateTime(lead.deletionAt)}</td>
                     <td className="px-3 py-2">{lead.outcomeReason ?? '--'}</td>
                     <td className="max-w-[200px] px-3 py-2">{lead.note || '--'}</td>
                     <td className="px-3 py-2">{formatDateTime(lead.followUpAt)}</td>
                     <td className="px-3 py-2">
                       <Link
                         className="underline"
-                        to={routes.leadDetail(lead.userId)}
-                        state={{ salesListSearch: location.search }}
+                        to={routes.deletedAccountsLeadDetail(lead.userId)}
+                        state={{ deletedAccountsListSearch: location.search }}
                       >
                         Manage
                       </Link>

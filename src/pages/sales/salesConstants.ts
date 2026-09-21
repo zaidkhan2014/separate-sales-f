@@ -13,6 +13,22 @@ export const ADMIN_SALES_STATUSES: AdminSalesStatus[] = [
 
 export const ADMIN_SALES_STATUS_FILTER_OPTIONS = ['ALL', ...ADMIN_SALES_STATUSES] as const
 
+export const SALES_MARITAL_STATUS_OPTIONS = [
+  'Never Married',
+  'Divorced',
+  'Widowed',
+  'Separated',
+] as const
+
+export type SalesMaritalStatusOption = (typeof SALES_MARITAL_STATUS_OPTIONS)[number]
+
+const SALES_MARITAL_STATUS_SET = new Set<string>(SALES_MARITAL_STATUS_OPTIONS)
+
+export function parseSalesMaritalStatus(raw: string | null | undefined): string {
+  if (!raw) return ''
+  return SALES_MARITAL_STATUS_SET.has(raw) ? raw : ''
+}
+
 export const ADMIN_SALES_OUTCOME_REASONS: AdminSalesOutcomeReason[] = [
   'PRICE_ISSUE',
   'NOT_LOOKING_NOW',

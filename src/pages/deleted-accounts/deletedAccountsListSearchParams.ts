@@ -1,5 +1,6 @@
 import type { AdminSalesStatus, DeletedSalesLeadsFilters, ProfileStatus } from '@/api/types'
-import { birthYearForLeadsApi } from '@/pages/sales/salesConstants'
+import { findFallbackCountryByIso2, findFallbackCountryByName } from '@/data/fallbackCountries'
+import { birthYearForLeadsApi, parseSalesMaritalStatus } from '@/pages/sales/salesConstants'
 import { isValidMinIncomeBandId } from '@/pages/sales/salesIncomeBands'
 import { toDatetimeLocalInput, toUtcIso } from '@/utils/date'
 
@@ -31,6 +32,8 @@ export interface DeletedAccountsListUrlState {
   gender: string
   birthYear: string
   maritalStatus: string
+  country: string
+  countryIso: string
   state: string
   city: string
   minIncomeBandId: string
@@ -54,6 +57,8 @@ export const defaultDeletedAccountsListUrlState = (): DeletedAccountsListUrlStat
   gender: '',
   birthYear: '',
   maritalStatus: '',
+  country: '',
+  countryIso: '',
   state: '',
   city: '',
   minIncomeBandId: '',
@@ -102,6 +107,21 @@ export function parseDeletedAccountsListSearchParams(searchParams: URLSearchPara
   const minIncomeRaw = searchParams.get('minIncomeBandId') ?? ''
   const minIncomeBandId = isValidMinIncomeBandId(minIncomeRaw) ? minIncomeRaw : ''
 
+  const countryIsoRaw = (searchParams.get('countryIso') ?? '').trim().toUpperCase()
+  const countryNameRaw = searchParams.get('country') ?? ''
+  let countryIso = ''
+  let country = ''
+  if (countryIsoRaw && findFallbackCountryByIso2(countryIsoRaw)) {
+    countryIso = countryIsoRaw
+    country = findFallbackCountryByIso2(countryIsoRaw)?.name ?? ''
+  } else if (countryNameRaw.trim()) {
+    const byName = findFallbackCountryByName(countryNameRaw)
+    if (byName) {
+      countryIso = byName.iso2
+      country = byName.name
+    }
+  }
+
   return {
     start: searchParams.get('start') ?? '',
     end: searchParams.get('end') ?? '',
@@ -112,7 +132,9 @@ export function parseDeletedAccountsListSearchParams(searchParams: URLSearchPara
     profileStatus,
     gender: searchParams.get('gender') ?? '',
     birthYear: searchParams.get('birthYear') ?? '',
-    maritalStatus: searchParams.get('maritalStatus') ?? '',
+    maritalStatus: parseSalesMaritalStatus(searchParams.get('maritalStatus')),
+    country,
+    countryIso,
     state: searchParams.get('state') ?? '',
     city: searchParams.get('city') ?? '',
     minIncomeBandId,
@@ -140,12 +162,14 @@ export function toDeletedAccountsListSearchParams(state: DeletedAccountsListUrlS
   if (state.gender.trim()) p.set('gender', state.gender)
   if (state.birthYear.trim()) p.set('birthYear', state.birthYear.trim())
   if (state.maritalStatus.trim()) p.set('maritalStatus', state.maritalStatus)
-  if (state.state.trim()) p.set('state', state.state.trim())
-  if (state.city.trim()) p.set('city', state.city.trim())
+  if (state.country.trim()) p.set('country', state.country)
+  if (state.countryIso.trim()) p.set('countryIso', state.countryIso)
+  if (state.state.trim()) p.set('state', state.state)
+  if (state.city.trim()) p.set('city', state.city)
   if (isValidMinIncomeBandId(state.minIncomeBandId)) p.set('minIncomeBandId', state.minIncomeBandId)
   if (state.pool === 'true') p.set('pool', 'true')
   if (state.assignedToMe === 'true') p.set('assignedToMe', 'true')
-  if (state.assignedToAdminId.trim()) p.set('assignedToAdminId', state.assignedToAdminId.trim())
+  if (state.assignedToAdminId.trim()) p.set('assignedToAdminId', state.assignedToAdminId)
   if (state.sort === 'leadScore') p.set('sort', 'leadScore')
   if (state.subscribedTri) p.set('subscribed', state.subscribedTri)
   if (state.verifiedTri) p.set('verifiedProfile', state.verifiedTri)
@@ -173,6 +197,7 @@ export function deletedAccountsListStateToApiFilters(
     gender: parsed.gender.trim() || undefined,
     birthYear: birthYearForLeadsApi(parsed.birthYear),
     maritalStatus: parsed.maritalStatus.trim() || undefined,
+    country: parsed.country.trim() || undefined,
     state: parsed.state.trim() || undefined,
     city: parsed.city.trim() || undefined,
     minIncomeBandId: isValidMinIncomeBandId(parsed.minIncomeBandId) ? parsed.minIncomeBandId : undefined,

@@ -8,12 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
+import { GeoLocationFilters } from '@/components/geo/GeoLocationFilters'
 import { useAdminDeletedSalesLeads, useAdminDeletedSalesSummary } from '@/hooks/api/useAdminDeletedSales'
 import type { AdminSalesStatus } from '@/api/types'
 import { cn } from '@/lib/cn'
 import { DeletedAccountsSavedViews } from '@/pages/deleted-accounts/DeletedAccountsSavedViews'
 import {
   ADMIN_SALES_STATUS_FILTER_OPTIONS,
+  SALES_MARITAL_STATUS_OPTIONS,
   birthYearForLeadsApi,
   salesSummaryMetricLabel,
 } from '@/pages/sales/salesConstants'
@@ -249,35 +251,31 @@ export default function DeletedAccountsPage() {
                 ) : null}
               </label>
               <label className="block min-w-0 text-sm text-slate-600">
-                <span className="mb-1 block font-medium text-slate-800">Marital status (exact match)</span>
-                <Input
+                <span className="mb-1 block font-medium text-slate-800">Marital status</span>
+                <Select
                   id="deleted-filter-marital-status"
-                  placeholder="e.g. Never married"
                   value={parsed.maritalStatus}
                   onChange={(event) => setFilters({ maritalStatus: event.target.value, page: 0 })}
-                  aria-label="Filter by marital status exact match"
-                />
+                  aria-label="Filter by marital status"
+                >
+                  <option value="">Any</option>
+                  {SALES_MARITAL_STATUS_OPTIONS.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
+                </Select>
               </label>
-              <label className="block min-w-0 text-sm text-slate-600">
-                <span className="mb-1 block font-medium text-slate-800">State (exact match)</span>
-                <Input
-                  id="deleted-filter-state"
-                  placeholder="e.g. Uttar Pradesh"
-                  value={parsed.state}
-                  onChange={(event) => setFilters({ state: event.target.value, page: 0 })}
-                  aria-label="Filter by state exact match"
-                />
-              </label>
-              <label className="block min-w-0 text-sm text-slate-600">
-                <span className="mb-1 block font-medium text-slate-800">City (exact match)</span>
-                <Input
-                  id="deleted-filter-city"
-                  placeholder="e.g. Lucknow"
-                  value={parsed.city}
-                  onChange={(event) => setFilters({ city: event.target.value, page: 0 })}
-                  aria-label="Filter by city exact match"
-                />
-              </label>
+              <GeoLocationFilters
+                idPrefix="deleted-filter"
+                value={{
+                  country: parsed.country,
+                  countryIso: parsed.countryIso,
+                  state: parsed.state,
+                  city: parsed.city,
+                }}
+                onChange={(patch) => setFilters({ ...patch, page: 0 })}
+              />
               <label className="block min-w-0 text-sm text-slate-600">
                 <span className="mb-1 block font-medium text-slate-800">Minimum income</span>
                 <Select

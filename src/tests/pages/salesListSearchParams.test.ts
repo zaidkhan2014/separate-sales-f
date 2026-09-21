@@ -31,7 +31,9 @@ describe('salesListSearchParams', () => {
       verifiedTri: 'false' as const,
       gender: 'Male',
       birthYear: '2000',
-      maritalStatus: 'Never married',
+      maritalStatus: 'Never Married',
+      country: 'India',
+      countryIso: 'IN',
       state: 'Uttar Pradesh',
       city: 'Lucknow',
       pool: 'true' as const,
@@ -49,12 +51,62 @@ describe('salesListSearchParams', () => {
     expect(roundTrip(state)).toEqual(state)
   })
 
-  it('preserves trailing space in maritalStatus while typing', () => {
-    const state = {
+  it('accepts known marital statuses and rejects unknown', () => {
+    expect(parseSalesListSearchParams(new URLSearchParams('maritalStatus=Never%20Married')).maritalStatus).toBe(
+      'Never Married',
+    )
+    expect(parseSalesListSearchParams(new URLSearchParams('maritalStatus=Separated')).maritalStatus).toBe(
+      'Separated',
+    )
+    expect(parseSalesListSearchParams(new URLSearchParams('maritalStatus=Never%20married')).maritalStatus).toBe('')
+  })
+
+  it('maps country name to API and keeps countryIso out of API filters', () => {
+    const api = salesListStateToApiFilters(
+      {
+        ...defaultSalesListUrlState(),
+        country: 'India',
+        countryIso: 'IN',
+        state: 'Uttar Pradesh',
+        city: 'Lucknow',
+      },
+      20,
+    )
+    expect(api.country).toBe('India')
+    expect(api.state).toBe('Uttar Pradesh')
+    expect(api.city).toBe('Lucknow')
+    expect(api).not.toHaveProperty('countryIso')
+  })
+
+  it('resolves country from countryIso on parse', () => {
+    const parsed = parseSalesListSearchParams(new URLSearchParams('countryIso=IN&state=Uttar%20Pradesh'))
+    expect(parsed.countryIso).toBe('IN')
+    expect(parsed.country).toBe('India')
+    expect(parsed.state).toBe('Uttar Pradesh')
+  })
+
+  it('preserves multi-word and trailing-space state/city while typing', () => {
+    const midType = {
       ...defaultSalesListUrlState(),
-      maritalStatus: 'Never ',
+      state: 'Uttar ',
+      city: 'New ',
     }
-    expect(roundTrip(state)).toEqual(state)
+    expect(toSalesListSearchParams(midType).get('state')).toBe('Uttar ')
+    expect(toSalesListSearchParams(midType).get('city')).toBe('New ')
+    expect(roundTrip(midType)).toEqual(midType)
+  })
+
+  it('trims state/city when mapping to API filters', () => {
+    const api = salesListStateToApiFilters(
+      {
+        ...defaultSalesListUrlState(),
+        state: 'Uttar Pradesh ',
+        city: ' New Delhi',
+      },
+      20,
+    )
+    expect(api.state).toBe('Uttar Pradesh')
+    expect(api.city).toBe('New Delhi')
   })
 
   it('preserves out-of-range birthYear string from URL', () => {

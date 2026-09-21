@@ -7,6 +7,23 @@ export interface ErrorResponse {
   error: string
   message: string
 }
+
+export interface GeoCountry {
+  iso2: string
+  name: string
+}
+
+export interface GeoState {
+  code: string
+  name: string
+  countryIso: string
+}
+
+export interface GeoCity {
+  geonameId: string
+  name: string
+  stateCode: string
+}
 export interface AdminTokenResponse {
   accessToken: string
   expiresAt: IsoInstant
@@ -483,6 +500,7 @@ export interface SalesLeadsFilters {
   birthYear?: number
   /** Exact match on basicDetails.maritalStatus (trimmed, case-sensitive) */
   maritalStatus?: string
+  country?: string
   state?: string
   city?: string
   /** Hardcoded band id e.g. INC_IN_30_40 — see salesIncomeBands.ts */

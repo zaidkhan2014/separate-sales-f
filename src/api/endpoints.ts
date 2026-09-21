@@ -1,7 +1,13 @@
 export const ADMIN_API_BASE = '/api/admin'
+export const GEO_API_BASE = '/api/geo'
 
 export const adminEndpoints = {
   authLogin: `${ADMIN_API_BASE}/auth/login`,
+  geo: {
+    countries: `${GEO_API_BASE}/countries`,
+    states: `${GEO_API_BASE}/states`,
+    cities: `${GEO_API_BASE}/cities`,
+  },
   sales: {
     leads: `${ADMIN_API_BASE}/sales/leads`,
     detail: (userId: string) => `${ADMIN_API_BASE}/sales/leads/${userId}`,

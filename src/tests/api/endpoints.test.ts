@@ -49,4 +49,10 @@ describe('adminEndpoints', () => {
   it('exposes auth login endpoint', () => {
     expect(adminEndpoints.authLogin).toBe('/api/admin/auth/login')
   })
+
+  it('creates geo endpoints', () => {
+    expect(adminEndpoints.geo.countries).toBe('/api/geo/countries')
+    expect(adminEndpoints.geo.states).toBe('/api/geo/states')
+    expect(adminEndpoints.geo.cities).toBe('/api/geo/cities')
+  })
 })

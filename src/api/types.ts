@@ -59,6 +59,9 @@ export interface AdminMetricsResponse {
 export type ProfileStatus = 'APPROVED' | 'PENDING' | 'REJECTED'
 export type BioModerationStatus = 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED'
 export type AccountStatus = 'ACTIVE' | 'DELETED' | 'BANNED'
+
+/** Query filter for basicDetails.profileCreatedFor buckets (omit = Any). */
+export type ProfileCreatedForFilter = 'SELF' | 'NON_SELF'
 export type ContactPrivacy = 'PREMIUM' | 'PREFERENCE'
 export type MediaModerationState = 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED'
 export type GalleryVisibility = 'OPEN' | 'BLUR_ALL' | 'SHOW_TO_LIKED'
@@ -500,6 +503,8 @@ export interface SalesLeadsFilters {
   birthYear?: number
   /** Exact match on basicDetails.maritalStatus (trimmed, case-sensitive) */
   maritalStatus?: string
+  /** SELF | NON_SELF — omit for Any */
+  profileCreatedFor?: ProfileCreatedForFilter
   country?: string
   state?: string
   city?: string

@@ -51,6 +51,36 @@ describe('salesListSearchParams', () => {
     expect(roundTrip(state)).toEqual(state)
   })
 
+  it('round-trips profileCreatedFor in URL', () => {
+    const state = {
+      ...defaultSalesListUrlState(),
+      profileCreatedFor: 'SELF',
+    }
+    expect(roundTrip(state)).toEqual(state)
+  })
+
+  it('accepts known profileCreatedFor values and rejects unknown', () => {
+    expect(parseSalesListSearchParams(new URLSearchParams('profileCreatedFor=SELF')).profileCreatedFor).toBe(
+      'SELF',
+    )
+    expect(
+      parseSalesListSearchParams(new URLSearchParams('profileCreatedFor=NON_SELF')).profileCreatedFor,
+    ).toBe('NON_SELF')
+    expect(parseSalesListSearchParams(new URLSearchParams('profileCreatedFor=Self')).profileCreatedFor).toBe(
+      '',
+    )
+  })
+
+  it('maps profileCreatedFor to API filters and omits Any', () => {
+    expect(
+      salesListStateToApiFilters({ ...defaultSalesListUrlState(), profileCreatedFor: 'NON_SELF' }, 20)
+        .profileCreatedFor,
+    ).toBe('NON_SELF')
+    expect(
+      salesListStateToApiFilters({ ...defaultSalesListUrlState(), profileCreatedFor: '' }, 20).profileCreatedFor,
+    ).toBeUndefined()
+  })
+
   it('accepts known marital statuses and rejects unknown', () => {
     expect(parseSalesListSearchParams(new URLSearchParams('maritalStatus=Never%20Married')).maritalStatus).toBe(
       'Never Married',

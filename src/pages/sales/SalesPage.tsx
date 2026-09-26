@@ -15,6 +15,7 @@ import { cn } from '@/lib/cn'
 import { SalesSavedViews } from '@/pages/sales/SalesSavedViews'
 import {
   ADMIN_SALES_STATUS_FILTER_OPTIONS,
+  PROFILE_CREATED_FOR_FILTER_OPTIONS,
   SALES_MARITAL_STATUS_OPTIONS,
   birthYearForLeadsApi,
   salesSummaryMetricLabel,
@@ -265,6 +266,22 @@ export default function SalesPage() {
                   {SALES_MARITAL_STATUS_OPTIONS.map((status) => (
                     <option key={status} value={status}>
                       {status}
+                    </option>
+                  ))}
+                </Select>
+              </label>
+              <label className="block min-w-0 text-sm text-slate-600">
+                <span className="mb-1 block font-medium text-slate-800">Created for</span>
+                <Select
+                  id="sales-filter-profile-created-for"
+                  value={parsed.profileCreatedFor}
+                  onChange={(event) => setFilters({ profileCreatedFor: event.target.value, page: 0 })}
+                  aria-label="Filter by profile created for"
+                >
+                  <option value="">Any</option>
+                  {PROFILE_CREATED_FOR_FILTER_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
                     </option>
                   ))}
                 </Select>

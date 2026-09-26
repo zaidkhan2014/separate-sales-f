@@ -102,6 +102,24 @@ describe('deletedAccountsListSearchParams', () => {
     expect(api).not.toHaveProperty('countryIso')
   })
 
+  it('round-trips profileCreatedFor and maps to API; omits Any', () => {
+    const state = {
+      ...defaultDeletedAccountsListUrlState(),
+      profileCreatedFor: 'SELF',
+    }
+    expect(roundTrip(state)).toEqual(state)
+    expect(deletedAccountsListStateToApiFilters(state, 20).profileCreatedFor).toBe('SELF')
+    expect(
+      deletedAccountsListStateToApiFilters(defaultDeletedAccountsListUrlState(), 20).profileCreatedFor,
+    ).toBeUndefined()
+  })
+
+  it('rejects unknown profileCreatedFor values', () => {
+    expect(
+      parseDeletedAccountsListSearchParams(new URLSearchParams('profileCreatedFor=Self')).profileCreatedFor,
+    ).toBe('')
+  })
+
   it('deletionRangePreset returns datetime-local start/end', () => {
     const range = deletionRangePreset(7)
     expect(range.start).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)

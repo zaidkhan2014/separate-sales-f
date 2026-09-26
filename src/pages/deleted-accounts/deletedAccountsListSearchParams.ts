@@ -1,6 +1,6 @@
 import type { AdminSalesStatus, DeletedSalesLeadsFilters, ProfileStatus } from '@/api/types'
 import { findFallbackCountryByIso2, findFallbackCountryByName } from '@/data/fallbackCountries'
-import { birthYearForLeadsApi, parseSalesMaritalStatus } from '@/pages/sales/salesConstants'
+import { birthYearForLeadsApi, parseProfileCreatedForFilter, parseSalesMaritalStatus } from '@/pages/sales/salesConstants'
 import { isValidMinIncomeBandId } from '@/pages/sales/salesIncomeBands'
 import { toDatetimeLocalInput, toUtcIso } from '@/utils/date'
 
@@ -32,6 +32,7 @@ export interface DeletedAccountsListUrlState {
   gender: string
   birthYear: string
   maritalStatus: string
+  profileCreatedFor: string
   country: string
   countryIso: string
   state: string
@@ -57,6 +58,7 @@ export const defaultDeletedAccountsListUrlState = (): DeletedAccountsListUrlStat
   gender: '',
   birthYear: '',
   maritalStatus: '',
+  profileCreatedFor: '',
   country: '',
   countryIso: '',
   state: '',
@@ -133,6 +135,7 @@ export function parseDeletedAccountsListSearchParams(searchParams: URLSearchPara
     gender: searchParams.get('gender') ?? '',
     birthYear: searchParams.get('birthYear') ?? '',
     maritalStatus: parseSalesMaritalStatus(searchParams.get('maritalStatus')),
+    profileCreatedFor: parseProfileCreatedForFilter(searchParams.get('profileCreatedFor')),
     country,
     countryIso,
     state: searchParams.get('state') ?? '',
@@ -162,6 +165,7 @@ export function toDeletedAccountsListSearchParams(state: DeletedAccountsListUrlS
   if (state.gender.trim()) p.set('gender', state.gender)
   if (state.birthYear.trim()) p.set('birthYear', state.birthYear.trim())
   if (state.maritalStatus.trim()) p.set('maritalStatus', state.maritalStatus)
+  if (state.profileCreatedFor.trim()) p.set('profileCreatedFor', state.profileCreatedFor)
   if (state.country.trim()) p.set('country', state.country)
   if (state.countryIso.trim()) p.set('countryIso', state.countryIso)
   if (state.state.trim()) p.set('state', state.state)
@@ -197,6 +201,7 @@ export function deletedAccountsListStateToApiFilters(
     gender: parsed.gender.trim() || undefined,
     birthYear: birthYearForLeadsApi(parsed.birthYear),
     maritalStatus: parsed.maritalStatus.trim() || undefined,
+    profileCreatedFor: parseProfileCreatedForFilter(parsed.profileCreatedFor) || undefined,
     country: parsed.country.trim() || undefined,
     state: parsed.state.trim() || undefined,
     city: parsed.city.trim() || undefined,

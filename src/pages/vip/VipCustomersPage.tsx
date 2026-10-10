@@ -4,6 +4,7 @@ import { EmptyState } from '@/components/common/EmptyState'
 import { PageHeader } from '@/components/common/PageHeader'
 import { QueryFeedback } from '@/components/common/QueryFeedback'
 import { VipLeadLink } from '@/components/common/VipLeadLink'
+import { LeadPhotoThumb } from '@/components/sales/LeadPhotoThumb'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
@@ -267,7 +268,9 @@ export default function VipCustomersPage() {
               <thead className="bg-slate-100 text-slate-600">
                 <tr>
                   <th className="px-3 py-2">Lead</th>
+                  <th className="px-3 py-2">Photo</th>
                   <th className="px-3 py-2">Status</th>
+                  <th className="px-3 py-2">Bio</th>
                   <th className="px-3 py-2">State</th>
                   <th className="px-3 py-2">City</th>
                   <th className="px-3 py-2">Profession</th>
@@ -291,11 +294,26 @@ export default function VipCustomersPage() {
               </thead>
               <tbody>
                 {leadsQuery.data.items.map((lead) => (
-                  <tr key={lead.userId} className="border-t border-slate-100">
+                  <tr key={lead.userId} className="border-t border-slate-100 align-top">
                     <td className="px-3 py-2">
                       <VipLeadLink userId={lead.userId} label={lead.fullName ?? lead.userId} />
                     </td>
+                    <td className="px-3 py-2">
+                      <LeadPhotoThumb
+                        url={lead.primaryImageUrl}
+                        alt={`${lead.fullName ?? lead.userId} photo`}
+                      />
+                    </td>
                     <td className="px-3 py-2">{lead.status}</td>
+                    <td className="max-w-[220px] px-3 py-2">
+                      {lead.bio ? (
+                        <p className="line-clamp-2" title={lead.bio}>
+                          {lead.bio}
+                        </p>
+                      ) : (
+                        '--'
+                      )}
+                    </td>
                     <td className="px-3 py-2">{lead.state ?? '--'}</td>
                     <td className="px-3 py-2">{lead.city ?? '--'}</td>
                     <td className="px-3 py-2">{lead.profession ?? '--'}</td>

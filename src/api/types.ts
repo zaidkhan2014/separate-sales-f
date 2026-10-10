@@ -653,6 +653,11 @@ export interface AdminVipLeadSummary {
   phone: string | null
   fullName: string | null
   gender: string | null
+  /** true when profile bio is non-blank after trim */
+  hasBio: boolean
+  bio: string | null
+  /** Cloudinary secure URL of primary gallery image */
+  primaryImageUrl: string | null
   city: string | null
   state: string | null
   country: string | null

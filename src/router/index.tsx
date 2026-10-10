@@ -20,6 +20,10 @@ const DeletedAccountsPerformancePage = lazy(
 const DeletedAccountsLeadDetailPage = lazy(
   () => import('@/pages/deleted-accounts/DeletedAccountsLeadDetailPage'),
 )
+const DemographicsPage = lazy(() => import('@/pages/demographics/DemographicsPage'))
+const VipCustomersPage = lazy(() => import('@/pages/vip/VipCustomersPage'))
+const VipFollowUpsPage = lazy(() => import('@/pages/vip/VipFollowUpsPage'))
+const VipLeadDetailPage = lazy(() => import('@/pages/vip/VipLeadDetailPage'))
 
 function LoadingRoute() {
   return <div className="p-6 text-sm text-slate-500">Loading page...</div>
@@ -63,6 +67,10 @@ export const router = createBrowserRouter([
           { path: 'follow-ups', element: <SalesFollowUpsPage /> },
           { path: 'performance', element: <SalesPerformancePage /> },
           { path: 'leads/:userId', element: <SalesLeadDetailPage /> },
+          { path: routes.demographics.slice(1), element: <DemographicsPage /> },
+          { path: routes.vip.slice(1), element: <VipCustomersPage /> },
+          { path: 'vip/follow-ups', element: <VipFollowUpsPage /> },
+          { path: 'vip/:userId', element: <VipLeadDetailPage /> },
           { path: 'deleted-accounts', element: <DeletedAccountsPage /> },
           { path: 'deleted-accounts/follow-ups', element: <DeletedAccountsFollowUpsPage /> },
           { path: 'deleted-accounts/performance', element: <DeletedAccountsPerformancePage /> },

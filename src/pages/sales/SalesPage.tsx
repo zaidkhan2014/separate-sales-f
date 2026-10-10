@@ -4,8 +4,10 @@ import { EmptyState } from '@/components/common/EmptyState'
 import { PageHeader } from '@/components/common/PageHeader'
 import { QueryFeedback } from '@/components/common/QueryFeedback'
 import { LeadUserLabel } from '@/components/common/LeadUserLabel'
+import { LeadPhotoThumb } from '@/components/sales/LeadPhotoThumb'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { MultiSelect } from '@/components/ui/MultiSelect'
 import { Select } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { GeoLocationFilters } from '@/components/geo/GeoLocationFilters'
@@ -15,11 +17,16 @@ import { cn } from '@/lib/cn'
 import { SalesSavedViews } from '@/pages/sales/SalesSavedViews'
 import {
   ADMIN_SALES_STATUS_FILTER_OPTIONS,
+  BIO_FILTER_OPTIONS,
   PROFILE_CREATED_FOR_FILTER_OPTIONS,
   SALES_MARITAL_STATUS_OPTIONS,
   birthYearForLeadsApi,
   salesSummaryMetricLabel,
 } from '@/pages/sales/salesConstants'
+import {
+  SALES_EDUCATION_LABELS,
+  SALES_PROFESSION_LABELS,
+} from '@/pages/sales/salesEducationProfession'
 import {
   INDIA_MIN_INCOME_BANDS,
   INTL_MIN_INCOME_BANDS,
@@ -286,6 +293,43 @@ export default function SalesPage() {
                   ))}
                 </Select>
               </label>
+              <label className="block min-w-0 text-sm text-slate-600">
+                <span className="mb-1 block font-medium text-slate-800">Bio</span>
+                <Select
+                  id="sales-filter-bio"
+                  value={parsed.bio}
+                  onChange={(event) => setFilters({ bio: event.target.value, page: 0 })}
+                  aria-label="Filter by bio availability"
+                >
+                  <option value="">Any</option>
+                  {BIO_FILTER_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </Select>
+              </label>
+              <label className="block min-w-0 text-sm text-slate-600">
+                <span className="mb-1 block font-medium text-slate-800">Education</span>
+                <MultiSelect
+                  id="sales-filter-education"
+                  aria-label="Filter by education"
+                  options={SALES_EDUCATION_LABELS.map((label) => ({ value: label, label }))}
+                  value={parsed.education}
+                  onChange={(education) => setFilters({ education, page: 0 })}
+                />
+              </label>
+              <label className="block min-w-0 text-sm text-slate-600">
+                <span className="mb-1 block font-medium text-slate-800">Profession</span>
+                <MultiSelect
+                  id="sales-filter-profession"
+                  aria-label="Filter by profession"
+                  searchable
+                  options={SALES_PROFESSION_LABELS.map((label) => ({ value: label, label }))}
+                  value={parsed.profession}
+                  onChange={(profession) => setFilters({ profession, page: 0 })}
+                />
+              </label>
               <GeoLocationFilters
                 idPrefix="sales-filter"
                 value={{
@@ -470,7 +514,11 @@ export default function SalesPage() {
               <thead className="bg-slate-100 text-slate-600">
                 <tr>
                   <th className="px-3 py-2">Lead</th>
+                  <th className="px-3 py-2">Photo</th>
                   <th className="px-3 py-2">Status</th>
+                  <th className="px-3 py-2">Education</th>
+                  <th className="px-3 py-2">Profession</th>
+                  <th className="px-3 py-2">Bio</th>
                   <th className="px-3 py-2">Assigned</th>
                   <th className="px-3 py-2">Score</th>
                   <th className="px-3 py-2">Income</th>
@@ -482,11 +530,28 @@ export default function SalesPage() {
               </thead>
               <tbody>
                 {leadsQuery.data.items.map((lead) => (
-                  <tr key={lead.userId} className="border-t border-slate-100">
+                  <tr key={lead.userId} className="border-t border-slate-100 align-top">
                     <td className="px-3 py-2">
                       <LeadUserLabel userId={lead.userId} label={lead.fullName ?? lead.userId} />
                     </td>
+                    <td className="px-3 py-2">
+                      <LeadPhotoThumb
+                        url={lead.primaryImageUrl}
+                        alt={`${lead.fullName ?? lead.userId} photo`}
+                      />
+                    </td>
                     <td className="px-3 py-2">{lead.salesStatus}</td>
+                    <td className="px-3 py-2">{lead.education ?? '--'}</td>
+                    <td className="px-3 py-2">{lead.profession ?? '--'}</td>
+                    <td className="max-w-[220px] px-3 py-2">
+                      {lead.bio ? (
+                        <p className="line-clamp-2" title={lead.bio}>
+                          {lead.bio}
+                        </p>
+                      ) : (
+                        '--'
+                      )}
+                    </td>
                     <td className="px-3 py-2">{lead.assignedToAdminId ?? '--'}</td>
                     <td className="px-3 py-2">{lead.leadScore ?? '--'}</td>
                     <td className="px-3 py-2">{lead.incomeLabel ?? '--'}</td>

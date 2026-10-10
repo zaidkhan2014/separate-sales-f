@@ -3,6 +3,11 @@ export const GEO_API_BASE = '/api/geo'
 
 export const adminEndpoints = {
   authLogin: `${ADMIN_API_BASE}/auth/login`,
+  analytics: {
+    demographics: `${ADMIN_API_BASE}/analytics/demographics`,
+    genderMonitoring: `${ADMIN_API_BASE}/analytics/gender-monitoring`,
+    geoByGender: `${ADMIN_API_BASE}/analytics/geo-by-gender`,
+  },
   geo: {
     countries: `${GEO_API_BASE}/countries`,
     states: `${GEO_API_BASE}/states`,
@@ -41,5 +46,16 @@ export const adminEndpoints = {
     savedViews: `${ADMIN_API_BASE}/sales/deleted/saved-views`,
     savedView: (viewId: string) => `${ADMIN_API_BASE}/sales/deleted/saved-views/${viewId}`,
     summary: `${ADMIN_API_BASE}/sales/deleted/summary`,
+  },
+  vip: {
+    leads: `${ADMIN_API_BASE}/vip/leads`,
+    detail: (userId: string) => `${ADMIN_API_BASE}/vip/leads/${userId}`,
+    updateStatus: (userId: string) => `${ADMIN_API_BASE}/vip/leads/${userId}/status`,
+    updateNote: (userId: string) => `${ADMIN_API_BASE}/vip/leads/${userId}/note`,
+    updateFollowUp: (userId: string) => `${ADMIN_API_BASE}/vip/leads/${userId}/follow-up`,
+    claim: (userId: string) => `${ADMIN_API_BASE}/vip/leads/${userId}/claim`,
+    release: (userId: string) => `${ADMIN_API_BASE}/vip/leads/${userId}/release`,
+    assign: (userId: string) => `${ADMIN_API_BASE}/vip/leads/${userId}/assign`,
+    followUps: `${ADMIN_API_BASE}/vip/follow-ups`,
   },
 } as const

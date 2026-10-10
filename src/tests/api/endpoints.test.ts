@@ -55,4 +55,16 @@ describe('adminEndpoints', () => {
     expect(adminEndpoints.geo.states).toBe('/api/geo/states')
     expect(adminEndpoints.geo.cities).toBe('/api/geo/cities')
   })
+
+  it('creates analytics endpoints', () => {
+    expect(adminEndpoints.analytics.demographics).toBe('/api/admin/analytics/demographics')
+    expect(adminEndpoints.analytics.genderMonitoring).toBe('/api/admin/analytics/gender-monitoring')
+    expect(adminEndpoints.analytics.geoByGender).toBe('/api/admin/analytics/geo-by-gender')
+  })
+
+  it('creates vip endpoints', () => {
+    expect(adminEndpoints.vip.leads).toBe('/api/admin/vip/leads')
+    expect(adminEndpoints.vip.detail('user-1')).toBe('/api/admin/vip/leads/user-1')
+    expect(adminEndpoints.vip.followUps).toBe('/api/admin/vip/follow-ups')
+  })
 })

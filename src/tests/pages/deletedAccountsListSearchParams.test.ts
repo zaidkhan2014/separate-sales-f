@@ -125,4 +125,18 @@ describe('deletedAccountsListSearchParams', () => {
     expect(range.start).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)
     expect(range.end).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)
   })
+
+  it('round-trips bio and maps to API; omits Any', () => {
+    const state = {
+      ...defaultDeletedAccountsListUrlState(),
+      bio: 'AVAILABLE',
+    }
+    expect(roundTrip(state)).toEqual(state)
+    expect(deletedAccountsListStateToApiFilters(state, 20).bio).toBe('AVAILABLE')
+    expect(deletedAccountsListStateToApiFilters(defaultDeletedAccountsListUrlState(), 20).bio).toBeUndefined()
+  })
+
+  it('rejects unknown bio values', () => {
+    expect(parseDeletedAccountsListSearchParams(new URLSearchParams('bio=available')).bio).toBe('')
+  })
 })

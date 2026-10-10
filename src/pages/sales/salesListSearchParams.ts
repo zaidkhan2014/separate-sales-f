@@ -1,6 +1,10 @@
 import type { AccountStatus, AdminSalesStatus, ProfileStatus, SalesLeadsFilters } from '@/api/types'
 import { findFallbackCountryByIso2, findFallbackCountryByName } from '@/data/fallbackCountries'
-import { birthYearForLeadsApi, parseProfileCreatedForFilter, parseSalesMaritalStatus } from '@/pages/sales/salesConstants'
+import { birthYearForLeadsApi, parseBioFilter, parseProfileCreatedForFilter, parseSalesMaritalStatus } from '@/pages/sales/salesConstants'
+import {
+  parseSalesEducationLabels,
+  parseSalesProfessionLabels,
+} from '@/pages/sales/salesEducationProfession'
 import { isValidMinIncomeBandId } from '@/pages/sales/salesIncomeBands'
 import { toUtcIso } from '@/utils/date'
 
@@ -35,6 +39,9 @@ export interface SalesListUrlState {
   birthYear: string
   maritalStatus: string
   profileCreatedFor: string
+  bio: string
+  education: string[]
+  profession: string[]
   country: string
   countryIso: string
   state: string
@@ -62,6 +69,9 @@ export const defaultSalesListUrlState = (): SalesListUrlState => ({
   birthYear: '',
   maritalStatus: '',
   profileCreatedFor: '',
+  bio: '',
+  education: [],
+  profession: [],
   country: '',
   countryIso: '',
   state: '',
@@ -139,6 +149,9 @@ export function parseSalesListSearchParams(searchParams: URLSearchParams): Sales
     birthYear: searchParams.get('birthYear') ?? '',
     maritalStatus: parseSalesMaritalStatus(searchParams.get('maritalStatus')),
     profileCreatedFor: parseProfileCreatedForFilter(searchParams.get('profileCreatedFor')),
+    bio: parseBioFilter(searchParams.get('bio')),
+    education: parseSalesEducationLabels(searchParams.getAll('education')),
+    profession: parseSalesProfessionLabels(searchParams.getAll('profession')),
     country,
     countryIso,
     state: searchParams.get('state') ?? '',
@@ -171,6 +184,13 @@ export function toSalesListSearchParams(state: SalesListUrlState): URLSearchPara
   if (state.birthYear.trim()) p.set('birthYear', state.birthYear.trim())
   if (state.maritalStatus.trim()) p.set('maritalStatus', state.maritalStatus)
   if (state.profileCreatedFor.trim()) p.set('profileCreatedFor', state.profileCreatedFor)
+  if (state.bio.trim()) p.set('bio', state.bio)
+  for (const label of state.education) {
+    p.append('education', label)
+  }
+  for (const label of state.profession) {
+    p.append('profession', label)
+  }
   if (state.country.trim()) p.set('country', state.country)
   if (state.countryIso.trim()) p.set('countryIso', state.countryIso)
   if (state.state.trim()) p.set('state', state.state)
@@ -206,6 +226,9 @@ export function salesListStateToApiFilters(parsed: SalesListUrlState, pageSize: 
     birthYear: birthYearForLeadsApi(parsed.birthYear),
     maritalStatus: parsed.maritalStatus.trim() || undefined,
     profileCreatedFor: parseProfileCreatedForFilter(parsed.profileCreatedFor) || undefined,
+    bio: parseBioFilter(parsed.bio) || undefined,
+    education: parsed.education.length > 0 ? parsed.education : undefined,
+    profession: parsed.profession.length > 0 ? parsed.profession : undefined,
     country: parsed.country.trim() || undefined,
     state: parsed.state.trim() || undefined,
     city: parsed.city.trim() || undefined,

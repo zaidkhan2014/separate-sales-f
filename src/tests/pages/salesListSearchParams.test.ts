@@ -233,4 +233,61 @@ describe('salesListSearchParams', () => {
     const serialized = serializeSalesListFiltersForStorage(state)
     expect(parseSalesListSearchParams(new URLSearchParams(serialized))).toEqual(state)
   })
+
+  it('round-trips bio in URL', () => {
+    const state = {
+      ...defaultSalesListUrlState(),
+      bio: 'AVAILABLE',
+    }
+    expect(roundTrip(state)).toEqual(state)
+  })
+
+  it('accepts known bio values and rejects unknown', () => {
+    expect(parseSalesListSearchParams(new URLSearchParams('bio=AVAILABLE')).bio).toBe('AVAILABLE')
+    expect(parseSalesListSearchParams(new URLSearchParams('bio=NOT_AVAILABLE')).bio).toBe('NOT_AVAILABLE')
+    expect(parseSalesListSearchParams(new URLSearchParams('bio=available')).bio).toBe('')
+  })
+
+  it('maps bio to API filters and omits Any', () => {
+    expect(salesListStateToApiFilters({ ...defaultSalesListUrlState(), bio: 'NOT_AVAILABLE' }, 20).bio).toBe(
+      'NOT_AVAILABLE',
+    )
+    expect(salesListStateToApiFilters({ ...defaultSalesListUrlState(), bio: '' }, 20).bio).toBeUndefined()
+  })
+
+  it('round-trips repeated education and profession labels', () => {
+    const state = {
+      ...defaultSalesListUrlState(),
+      education: ["Bachelor's Degree", 'Masters degree'],
+      profession: ['Doctor', 'Software Engineer'],
+    }
+    const params = toSalesListSearchParams(state)
+    expect(params.getAll('education')).toEqual(["Bachelor's Degree", 'Masters degree'])
+    expect(params.getAll('profession')).toEqual(['Doctor', 'Software Engineer'])
+    expect(roundTrip(state)).toEqual(state)
+  })
+
+  it('keeps only known education/profession labels from URL', () => {
+    const parsed = parseSalesListSearchParams(
+      new URLSearchParams(
+        "education=Bachelor's%20Degree&education=NotARealLevel&profession=Doctor&profession=UnknownJob",
+      ),
+    )
+    expect(parsed.education).toEqual(["Bachelor's Degree"])
+    expect(parsed.profession).toEqual(['Doctor'])
+  })
+
+  it('maps education/profession arrays to API filters and omits empty', () => {
+    expect(
+      salesListStateToApiFilters(
+        {
+          ...defaultSalesListUrlState(),
+          education: ["Bachelor's Degree"],
+          profession: ['Doctor'],
+        },
+        20,
+      ).education,
+    ).toEqual(["Bachelor's Degree"])
+    expect(salesListStateToApiFilters(defaultSalesListUrlState(), 20).education).toBeUndefined()
+  })
 })

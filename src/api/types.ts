@@ -49,11 +49,80 @@ export interface AdminMetricCard {
   breakdown: AdminBreakdownItem[]
 }
 
+export type Granularity = 'DAILY' | 'WEEKLY' | 'MONTHLY'
+export type GranularityInput = 'daily' | 'weekly' | 'monthly'
+
 export interface AdminMetricsResponse {
   start: IsoInstant
   end: IsoInstant
-  granularity: 'DAILY' | 'WEEKLY' | 'MONTHLY'
+  granularity: Granularity
   metrics: AdminMetricCard[]
+}
+
+export interface GenderSnapshot {
+  total: number
+  male: number
+  female: number
+  unknown: number
+  femalePercent: number
+  malePercent: number
+  maleToFemaleRatio: string
+}
+
+export interface GenderTrendPoint {
+  bucket: string
+  male: number
+  female: number
+  unknown: number
+  total: number
+  femalePercent: number
+}
+
+export interface GenderCohortStats {
+  snapshot: GenderSnapshot
+  cumulativeTrend: GenderTrendPoint[]
+  inflowTrend: GenderTrendPoint[]
+  byProfileStatus: Record<string, GenderSnapshot>
+}
+
+export interface CityGenderStats {
+  city: string
+  total: number
+  male: number
+  female: number
+  unknown: number
+  femalePercent: number
+}
+
+export interface CityDistributionStats {
+  total: number
+  cities: CityGenderStats[]
+}
+
+export interface AdminGenderMonitoringResponse {
+  start: IsoInstant
+  end: IsoInstant
+  granularity: Granularity
+  approved: GenderCohortStats
+  onboardingComplete: GenderCohortStats
+  cityDistribution: CityDistributionStats
+}
+
+export interface GeoNameCount {
+  name: string
+  count: number
+}
+
+export interface GeoGenderBreakdown {
+  male: GeoNameCount[]
+  female: GeoNameCount[]
+}
+
+export interface AdminGeoByGenderResponse {
+  maleTotal: number
+  femaleTotal: number
+  cities: GeoGenderBreakdown
+  states: GeoGenderBreakdown
 }
 
 export type ProfileStatus = 'APPROVED' | 'PENDING' | 'REJECTED'
@@ -62,6 +131,9 @@ export type AccountStatus = 'ACTIVE' | 'DELETED' | 'BANNED'
 
 /** Query filter for basicDetails.profileCreatedFor buckets (omit = Any). */
 export type ProfileCreatedForFilter = 'SELF' | 'NON_SELF'
+
+/** Query filter for profile bio presence (omit = Any). */
+export type BioFilter = 'AVAILABLE' | 'NOT_AVAILABLE'
 export type ContactPrivacy = 'PREMIUM' | 'PREFERENCE'
 export type MediaModerationState = 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED'
 export type GalleryVisibility = 'OPEN' | 'BLUR_ALL' | 'SHOW_TO_LIKED'
@@ -258,6 +330,14 @@ export interface AdminSalesLeadSummary {
   phone: string | null
   fullName: string | null
   gender: string | null
+  profileCreatedFor: string | null
+  /** true when profile bio is non-blank after trim */
+  hasBio: boolean
+  bio: string | null
+  education: string | null
+  profession: string | null
+  /** Cloudinary secure URL of primary gallery image */
+  primaryImageUrl: string | null
   city: string | null
   state: string | null
   country: string | null
@@ -322,6 +402,14 @@ export interface AdminDeletedSalesLeadSummary {
   phone: string | null
   fullName: string | null
   gender: string | null
+  profileCreatedFor: string | null
+  /** true when profile bio is non-blank after trim */
+  hasBio: boolean
+  bio: string | null
+  education: string | null
+  profession: string | null
+  /** Cloudinary secure URL of primary gallery image */
+  primaryImageUrl: string | null
   city: string | null
   state: string | null
   country: string | null
@@ -487,6 +575,16 @@ export interface AdminStaffLoginRequest {
 
 // --- Filters ---
 
+export interface AnalyticsFilters {
+  start?: IsoInstant
+  end?: IsoInstant
+  granularity?: GranularityInput
+}
+
+export interface GenderMonitoringFilters extends AnalyticsFilters {
+  cityLimit?: number
+}
+
 export interface SalesLeadsFilters {
   start?: IsoInstant
   end?: IsoInstant
@@ -505,6 +603,12 @@ export interface SalesLeadsFilters {
   maritalStatus?: string
   /** SELF | NON_SELF — omit for Any */
   profileCreatedFor?: ProfileCreatedForFilter
+  /** AVAILABLE | NOT_AVAILABLE — omit for Any */
+  bio?: BioFilter
+  /** Exact labels; send as repeated query params */
+  education?: string[]
+  /** Exact labels; send as repeated query params */
+  profession?: string[]
   country?: string
   state?: string
   city?: string
@@ -539,6 +643,104 @@ export interface SalesAgentPerformanceFilters {
 
 export interface SalesActivitiesFilters {
   type?: AdminSalesActivityType
+  page?: number
+  size?: number
+}
+
+export interface AdminVipLeadSummary {
+  userId: string
+  memberId: string | null
+  phone: string | null
+  fullName: string | null
+  gender: string | null
+  city: string | null
+  state: string | null
+  country: string | null
+  profileCreatedAt: IsoInstant | null
+  profileStatus: string | null
+  accountStatus: string | null
+  subscribed: boolean
+  status: string
+  note: string | null
+  followUpAt: IsoInstant | null
+  lastCalledAt: IsoInstant | null
+  assignedToAdminId: string | null
+  claimedAt: IsoInstant | null
+  outcomeReason: AdminSalesOutcomeReason | null
+  convertedAt: IsoInstant | null
+  requestedAt: IsoInstant | null
+  lastRequestedAt: IsoInstant | null
+  requestCount: number
+  vipPlanId: string | null
+  vipTitle: string | null
+  originalPriceInr: number | null
+  discountedPriceInr: number | null
+  currency: string | null
+  updatedAt: IsoInstant | null
+  dateOfBirth?: string | null
+  age?: number | null
+  maritalStatus?: string | null
+  height?: number | null
+  profession?: string | null
+  education?: string | null
+  industry?: string | null
+  incomeLabel?: string | null
+  incomePerYearUsd?: number | null
+  verifiedProfile?: boolean
+  approvedPhotoCount?: number | null
+}
+
+export interface AdminVipLeadSearchResponse {
+  items: AdminVipLeadSummary[]
+  page: number
+  size: number
+  total: number
+}
+
+export interface AdminVipLeadDetailResponse {
+  profile: UserProfile
+  status: string
+  note: string | null
+  notes: AdminSalesNoteEntry[]
+  followUpAt: IsoInstant | null
+  lastCalledAt: IsoInstant | null
+  assignedToAdminId: string | null
+  claimedAt: IsoInstant | null
+  outcomeReason: AdminSalesOutcomeReason | null
+  convertedAt: IsoInstant | null
+  requestedAt: IsoInstant | null
+  lastRequestedAt: IsoInstant | null
+  requestCount: number
+  vipPlanId: string | null
+  vipTitle: string | null
+  originalPriceInr: number | null
+  discountedPriceInr: number | null
+  currency: string | null
+  ctaLabel: string | null
+  createdAt: IsoInstant | null
+  updatedAt: IsoInstant | null
+}
+
+export type VipLeadSort = 'newest' | 'oldest' | 'follow_up' | 'updated'
+
+export interface VipLeadsFilters {
+  start?: IsoInstant
+  end?: IsoInstant
+  status?: AdminSalesStatus
+  followUpStart?: IsoInstant
+  followUpEnd?: IsoInstant
+  query?: string
+  assignedToAdminId?: string
+  assignedToMe?: boolean
+  pool?: boolean
+  sort?: VipLeadSort
+  page?: number
+  size?: number
+}
+
+export interface VipFollowUpsFilters {
+  bucket?: 'due_today' | 'overdue' | 'upcoming'
+  assignedToMe?: boolean
   page?: number
   size?: number
 }

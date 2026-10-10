@@ -1,9 +1,13 @@
 export const routes = {
   login: '/login',
+  demographics: '/demographics',
   leads: '/leads',
   leadDetail: (userId: string) => `/leads/${userId}`,
   followUps: '/follow-ups',
   performance: '/performance',
+  vip: '/vip',
+  vipFollowUps: '/vip/follow-ups',
+  vipLeadDetail: (userId: string) => `/vip/${userId}`,
   deletedAccounts: '/deleted-accounts',
   deletedAccountsFollowUps: '/deleted-accounts/follow-ups',
   deletedAccountsPerformance: '/deleted-accounts/performance',

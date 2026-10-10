@@ -46,6 +46,21 @@ export function parseProfileCreatedForFilter(raw: string | null | undefined): ''
   return PROFILE_CREATED_FOR_FILTER_SET.has(raw) ? (raw as ProfileCreatedForFilterOption) : ''
 }
 
+/** Query filter for profile bio presence (omit = Any). */
+export const BIO_FILTER_OPTIONS = [
+  { value: 'AVAILABLE', label: 'Available' },
+  { value: 'NOT_AVAILABLE', label: 'Not available' },
+] as const
+
+export type BioFilterOption = (typeof BIO_FILTER_OPTIONS)[number]['value']
+
+const BIO_FILTER_SET = new Set<string>(BIO_FILTER_OPTIONS.map((option) => option.value))
+
+export function parseBioFilter(raw: string | null | undefined): '' | BioFilterOption {
+  if (!raw) return ''
+  return BIO_FILTER_SET.has(raw) ? (raw as BioFilterOption) : ''
+}
+
 export const ADMIN_SALES_OUTCOME_REASONS: AdminSalesOutcomeReason[] = [
   'PRICE_ISSUE',
   'NOT_LOOKING_NOW',

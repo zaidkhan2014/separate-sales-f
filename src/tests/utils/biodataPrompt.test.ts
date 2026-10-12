@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import type { UserProfile } from '@/api/types'
-import { buildBiodataPrompt, getBiodataContent, getGalleryImageUrls } from '@/utils/biodataPrompt'
+import {
+  buildBiodataPrompt,
+  getBiodataContent,
+  getGalleryImageUrls,
+  sanitizePdfText,
+} from '@/utils/biodataPrompt'
 
 const profile: UserProfile = {
   id: 'profile-id-secret',
@@ -50,11 +55,20 @@ describe('getGalleryImageUrls', () => {
   })
 })
 
+describe('sanitizePdfText', () => {
+  it('replaces rupee and fancy punctuation for Helvetica', () => {
+    expect(sanitizePdfText('Income: ₹0–₹5 lakh')).toBe('Income: Rs 0-Rs 5 lakh')
+    expect(sanitizePdfText('“Hello”…')).toBe('"Hello"...')
+  })
+})
+
 describe('getBiodataContent', () => {
-  it('includes name/education and excludes phone/ids/band ids', () => {
+  it('includes name/education and excludes phone/ids/band ids by default', () => {
     const content = getBiodataContent(profile)
     expect(content.displayName).toBe('Aisha Khan')
+    expect(content.locationLine).toBe('Lucknow, Uttar Pradesh, India')
     expect(content.photoUrls[0]).toBe('https://example.com/a.jpg')
+    expect(content.keyFacts.some((r) => r.label === 'Phone')).toBe(false)
     const flat = content.sections.flatMap((s) => s.rows.map((r) => `${r.label}:${r.value}`)).join('|')
     expect(flat).toContain("Education:Bachelor's Degree")
     expect(flat).toContain('Income:₹30–₹40 Lakh')
@@ -62,6 +76,17 @@ describe('getBiodataContent', () => {
     expect(flat).not.toContain('user-should-not-appear')
     expect(flat).not.toContain('Q999')
     expect(flat).not.toContain('INC_IN_30_40')
+  })
+
+  it('includes phone in key facts and basic details when opted in', () => {
+    const content = getBiodataContent(profile, { includePhone: true })
+    expect(content.keyFacts.some((r) => r.label === 'Phone' && r.value === '+919876543210')).toBe(
+      true,
+    )
+    const flat = content.sections.flatMap((s) => s.rows.map((r) => `${r.label}:${r.value}`)).join('|')
+    expect(flat).toContain('Phone:+919876543210')
+    expect(flat).not.toContain('user-should-not-appear')
+    expect(flat).not.toContain('Q999')
   })
 })
 
@@ -82,6 +107,7 @@ describe('buildBiodataPrompt', () => {
     expect(prompt).toContain('Looking for a kind partner.')
     expect(prompt).toContain('https://example.com/a.jpg')
     expect(prompt).toContain('https://example.com/b.jpg')
+    expect(prompt).toContain('Do NOT include phone numbers')
 
     expect(prompt).not.toContain('+919876543210')
     expect(prompt).not.toContain('user-should-not-appear')
@@ -90,5 +116,11 @@ describe('buildBiodataPrompt', () => {
     expect(prompt).not.toContain('INC_IN_30_40')
     expect(prompt).not.toContain('SAV_1')
     expect(prompt).not.toContain('https://example.com/v.mp4')
+  })
+
+  it('includes phone when opted in', () => {
+    const prompt = buildBiodataPrompt(profile, { includePhone: true })
+    expect(prompt).toContain('+919876543210')
+    expect(prompt).toContain('Include the phone number exactly as listed')
   })
 })

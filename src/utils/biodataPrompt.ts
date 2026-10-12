@@ -7,9 +7,16 @@ export const QURB_BIODATA_TAGLINE = 'Finding your spouse, seeking His pleasure.'
 export type BiodataRow = { label: string; value: string }
 export type BiodataSection = { title: string; rows: BiodataRow[] }
 
+export interface BiodataContentOptions {
+  includePhone?: boolean
+}
+
 export interface BiodataContent {
   displayName: string
+  locationLine: string | null
   photoUrls: string[]
+  /** Compact facts shown under the name (Gender, DOB, etc.) */
+  keyFacts: BiodataRow[]
   sections: BiodataSection[]
 }
 
@@ -31,6 +38,18 @@ function row(label: string, value: unknown): BiodataRow | null {
   const text = asText(value)
   if (!text) return null
   return { label, value: text }
+}
+
+/** Make values safe for Helvetica-based jsPDF (₹ and similar break glyph metrics). */
+export function sanitizePdfText(value: string): string {
+  return value
+    .replace(/\u20B9/g, 'Rs ')
+    .replace(/₹/g, 'Rs ')
+    .replace(/[\u2013\u2014]/g, '-')
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/\u2026/g, '...')
+    .replace(/\u00A0/g, ' ')
 }
 
 function formatFilterValues(field: FilterField<unknown> | null | undefined): string | null {
@@ -98,9 +117,12 @@ export function getGalleryImageUrls(profile: UserProfile | undefined | null): st
 
 /**
  * Privacy-safe biodata fields shared by the AI prompt and PDF export.
- * Omits phone, member/user ids, and band ids.
+ * Omits member/user ids and band ids. Phone only when includePhone is true.
  */
-export function getBiodataContent(profile: UserProfile): BiodataContent {
+export function getBiodataContent(
+  profile: UserProfile,
+  options: BiodataContentOptions = {},
+): BiodataContent {
   const bd = profile.basicDetails
   const ce = profile.careerEducation
   const fp = profile.faithPractice
@@ -108,20 +130,35 @@ export function getBiodataContent(profile: UserProfile): BiodataContent {
   const h = profile.health
   const fam = profile.family
   const displayName = bd?.fullName?.trim() || 'Member'
+  const locationLine =
+    [bd?.city, bd?.state, bd?.country].map((p) => p?.trim()).filter(Boolean).join(', ') || null
+
+  const keyFacts = [
+    row('Gender', bd?.gender),
+    row('Date of birth', bd?.dateOfBirth),
+    row('Marital status', bd?.maritalStatus),
+    row('Height', bd?.height != null ? `${bd.height} cm` : null),
+    row('Ethnicity', bd?.ethnicity),
+    row('Profile created for', bd?.profileCreatedFor),
+    options.includePhone ? row('Phone', profile.phone) : null,
+  ].filter((item): item is BiodataRow => Boolean(item))
+
+  const basicRows = [
+    row('Full name', bd?.fullName),
+    row('Gender', bd?.gender),
+    row('Date of birth', bd?.dateOfBirth),
+    row('Marital status', bd?.maritalStatus),
+    row('Height', bd?.height != null ? `${bd.height} cm` : null),
+    row('City', bd?.city),
+    row('State', bd?.state),
+    row('Country', bd?.country),
+    row('Ethnicity', bd?.ethnicity),
+    row('Profile created for', bd?.profileCreatedFor),
+    options.includePhone ? row('Phone', profile.phone) : null,
+  ]
 
   const sections = [
-    makeSection('Basic details', [
-      row('Full name', bd?.fullName),
-      row('Gender', bd?.gender),
-      row('Date of birth', bd?.dateOfBirth),
-      row('Marital status', bd?.maritalStatus),
-      row('Height', bd?.height != null ? `${bd.height} cm` : null),
-      row('City', bd?.city),
-      row('State', bd?.state),
-      row('Country', bd?.country),
-      row('Ethnicity', bd?.ethnicity),
-      row('Profile created for', bd?.profileCreatedFor),
-    ]),
+    makeSection('Basic details', basicRows),
     makeSection('Career & education', [
       row('Education', ce?.education),
       row('Profession', ce?.profession),
@@ -161,17 +198,25 @@ export function getBiodataContent(profile: UserProfile): BiodataContent {
 
   return {
     displayName,
+    locationLine,
     photoUrls: getGalleryImageUrls(profile),
+    keyFacts,
     sections,
   }
 }
 
 /**
  * Builds a clipboard-ready AI prompt for a minimal Qurb-branded biodata image.
- * Omits phone, member/user ids, and other internal identifiers.
+ * Omits member/user ids. Phone only when includePhone is true.
  */
-export function buildBiodataPrompt(profile: UserProfile): string {
-  const { displayName: _name, photoUrls, sections } = getBiodataContent(profile)
+export function buildBiodataPrompt(
+  profile: UserProfile,
+  options: BiodataContentOptions = {},
+): string {
+  const { photoUrls, sections } = getBiodataContent(profile, options)
+  const phoneRule = options.includePhone
+    ? '- Include the phone number exactly as listed in Basic details when present'
+    : '- Do NOT include phone numbers, member IDs, user IDs, or any other internal/admin identifiers'
 
   const parts: string[] = [
     'Create a premium minimal-theme creative biodata card image for the Qurb Muslim marriage app.',
@@ -189,7 +234,8 @@ export function buildBiodataPrompt(profile: UserProfile): string {
     '- Render every listed detail exactly as given (spelling, numbers, labels, punctuation)',
     '- Do NOT invent, omit, rename, rephrase, or “improve” any field',
     '- Skip sections with no data; never invent filler content',
-    '- Do NOT include phone numbers, member IDs, user IDs, or any other internal/admin identifiers',
+    phoneRule,
+    '- Do NOT include member IDs, user IDs, or any other internal/admin identifiers',
     '',
     'Visual design (premium biodata card):',
     '- Single tall shareable card (phone portrait ~9:16) with generous whitespace — not a dense form dump',

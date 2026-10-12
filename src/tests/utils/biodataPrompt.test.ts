@@ -56,6 +56,10 @@ describe('buildBiodataPrompt', () => {
 
     expect(prompt).toContain('Qurb Muslim marriage app')
     expect(prompt).toContain('https://www.getqurb.com/assets/qurb-logo-full-DJfb8tQl.jpg')
+    expect(prompt).toContain('STRICTLY use')
+    expect(prompt).toContain('Do NOT generate')
+    expect(prompt).toContain('stock/AI faces')
+    expect(prompt).toContain('exactly as given')
     expect(prompt).toContain('Aisha Khan')
     expect(prompt).toContain("Bachelor's Degree")
     expect(prompt).toContain('Software Engineer')

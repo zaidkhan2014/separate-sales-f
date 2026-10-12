@@ -94,17 +94,32 @@ export function buildBiodataPrompt(profile: UserProfile): string {
   const photos = getGalleryImageUrls(profile)
 
   const parts: string[] = [
-    'Create a minimal-theme, creative biodata image for the Qurb Muslim marriage app.',
+    'Create a premium minimal-theme creative biodata card image for the Qurb Muslim marriage app.',
     '',
     'Brand:',
     '- App name: Qurb Muslim marriage app',
-    `- Logo (include clearly in the design): ${QURB_LOGO_URL}`,
+    `- Logo (include clearly at the top): ${QURB_LOGO_URL}`,
     '',
-    'Design requirements:',
-    '- Minimal, elegant, modern matrimonial biodata layout',
-    '- Use the provided profile photos clearly and sharply (do not blur faces or crop poorly)',
+    'Photo fidelity (critical):',
+    '- STRICTLY use only the provided profile photo URL(s) as this person’s face and identity',
+    '- Do NOT generate, invent, substitute, or use stock/AI faces — no fake people',
+    '- Keep the face clearly recognizable; high clarity, natural color; only a light flattering crop if needed',
+    '',
+    'Data fidelity (critical):',
+    '- Render every listed detail exactly as given (spelling, numbers, labels, punctuation)',
+    '- Do NOT invent, omit, rename, rephrase, or “improve” any field',
+    '- Skip sections with no data; never invent filler content',
     '- Do NOT include phone numbers, member IDs, user IDs, or any other internal/admin identifiers',
-    '- Only use the profile details listed below',
+    '',
+    'Visual design (premium biodata card):',
+    '- Single tall shareable card (phone portrait ~9:16) with generous whitespace — not a dense form dump',
+    '- Soft off-white/cream background; deep plum/aubergine + muted magenta accents matching the Qurb logo (avoid generic purple-on-white AI cliché)',
+    '- Qurb logo clearly at top; elegant circular portrait with a subtle gold/bronze ring',
+    '- Name as hero under the photo; key facts in a clean icon + label row (gender, age/DOB, marital status, height, location)',
+    '- Clear section hierarchy (Career & Education, Faith, Faith points, Personality, Health, Family, Bio as available)',
+    '- Faith points and personality as refined pill tags — not cluttered chip walls',
+    '- Avoid spreadsheet/list look, tiny overcrowded icons, and low-contrast gray walls of text',
+    '- Optional refined footer tagline: “Finding your spouse, seeking His pleasure.”',
     '',
   ]
 
@@ -159,16 +174,23 @@ export function buildBiodataPrompt(profile: UserProfile): string {
   )
 
   if (photos.length) {
-    parts.push('Profile photos (use clearly):')
+    parts.push(
+      'Profile photos (STRICTLY use these exact URLs for the person — do not replace with any other face):',
+    )
     photos.forEach((url, index) => {
       parts.push(`${index + 1}. ${url}`)
     })
     parts.push('')
   } else {
-    parts.push('Profile photos: none provided', '')
+    parts.push(
+      'Profile photos: none provided — do not invent a face; use elegant initials or a tasteful placeholder only.',
+      '',
+    )
   }
 
-  parts.push('Output a single polished biodata image suitable for sharing.')
+  parts.push(
+    'Output a single polished biodata image suitable for sharing, with correct details and the real provided photo.',
+  )
 
   return parts.join('\n').trim() + '\n'
 }

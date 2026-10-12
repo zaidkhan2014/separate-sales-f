@@ -1,7 +1,17 @@
 import type { FilterField, PartnerPreferences, UserProfile } from '@/api/types'
 
 const FALLBACK_ORDER = 999_999
-const QURB_LOGO_URL = 'https://www.getqurb.com/assets/qurb-logo-full-DJfb8tQl.jpg'
+export const QURB_LOGO_URL = 'https://www.getqurb.com/assets/qurb-logo-full-DJfb8tQl.jpg'
+export const QURB_BIODATA_TAGLINE = 'Finding your spouse, seeking His pleasure.'
+
+export type BiodataRow = { label: string; value: string }
+export type BiodataSection = { title: string; rows: BiodataRow[] }
+
+export interface BiodataContent {
+  displayName: string
+  photoUrls: string[]
+  sections: BiodataSection[]
+}
 
 function present(value: unknown): boolean {
   if (value == null) return false
@@ -10,17 +20,17 @@ function present(value: unknown): boolean {
   return true
 }
 
-function line(label: string, value: unknown): string | null {
+function asText(value: unknown): string | null {
   if (!present(value)) return null
-  if (Array.isArray(value)) return `${label}: ${value.join(', ')}`
-  if (typeof value === 'string') return `${label}: ${value.trim()}`
-  return `${label}: ${String(value)}`
+  if (Array.isArray(value)) return value.map((v) => String(v).trim()).filter(Boolean).join(', ')
+  if (typeof value === 'string') return value.trim()
+  return String(value)
 }
 
-function section(title: string, lines: Array<string | null>): string[] {
-  const body = lines.filter((item): item is string => Boolean(item))
-  if (!body.length) return []
-  return [`${title}:`, ...body.map((item) => `- ${item}`), '']
+function row(label: string, value: unknown): BiodataRow | null {
+  const text = asText(value)
+  if (!text) return null
+  return { label, value: text }
 }
 
 function formatFilterValues(field: FilterField<unknown> | null | undefined): string | null {
@@ -40,32 +50,38 @@ function formatFilterValues(field: FilterField<unknown> | null | undefined): str
   return text || null
 }
 
-function partnerPreferenceLines(pp: PartnerPreferences | null | undefined): Array<string | null> {
+function partnerPreferenceRows(pp: PartnerPreferences | null | undefined): BiodataRow[] {
   if (!pp) return []
   const ageParts: string[] = []
   if (pp.age?.minAge != null) ageParts.push(`min ${pp.age.minAge}`)
   if (pp.age?.maxAge != null) ageParts.push(`max ${pp.age.maxAge}`)
 
   return [
-    ageParts.length ? line('Age range', ageParts.join(', ')) : null,
-    line('Countries', pp.country),
-    line('Sects', pp.sect),
-    line('Height', formatFilterValues(pp.height)),
-    line('Marital status', formatFilterValues(pp.maritalStatus)),
-    line('State', formatFilterValues(pp.state)),
-    line('City', formatFilterValues(pp.city)),
-    line('Caste', formatFilterValues(pp.caste)),
-    line('Ethnicity', formatFilterValues(pp.ethnicity)),
-    line('Education', formatFilterValues(pp.education)),
-    line('Profession', formatFilterValues(pp.profession)),
-    line('Saving assets', formatFilterValues(pp.savingAssets)),
-    line('Income', formatFilterValues(pp.income)),
-    line('Religious practice', formatFilterValues(pp.religiousPractice)),
-    line('Born Muslim', formatFilterValues(pp.bornMuslim)),
-    line('Smoke', formatFilterValues(pp.smoke)),
-    line('Alcohol', formatFilterValues(pp.alcohol)),
-    line('Islamic dress', formatFilterValues(pp.islamicDress)),
-  ]
+    ageParts.length ? row('Age range', ageParts.join(', ')) : null,
+    row('Countries', pp.country),
+    row('Sects', pp.sect),
+    row('Height', formatFilterValues(pp.height)),
+    row('Marital status', formatFilterValues(pp.maritalStatus)),
+    row('State', formatFilterValues(pp.state)),
+    row('City', formatFilterValues(pp.city)),
+    row('Caste', formatFilterValues(pp.caste)),
+    row('Ethnicity', formatFilterValues(pp.ethnicity)),
+    row('Education', formatFilterValues(pp.education)),
+    row('Profession', formatFilterValues(pp.profession)),
+    row('Saving assets', formatFilterValues(pp.savingAssets)),
+    row('Income', formatFilterValues(pp.income)),
+    row('Religious practice', formatFilterValues(pp.religiousPractice)),
+    row('Born Muslim', formatFilterValues(pp.bornMuslim)),
+    row('Smoke', formatFilterValues(pp.smoke)),
+    row('Alcohol', formatFilterValues(pp.alcohol)),
+    row('Islamic dress', formatFilterValues(pp.islamicDress)),
+  ].filter((item): item is BiodataRow => Boolean(item))
+}
+
+function makeSection(title: string, rows: Array<BiodataRow | null>): BiodataSection | null {
+  const body = rows.filter((item): item is BiodataRow => Boolean(item))
+  if (!body.length) return null
+  return { title, rows: body }
 }
 
 /** All gallery image URLs sorted by orderIndex (images with a usable url only). */
@@ -81,17 +97,81 @@ export function getGalleryImageUrls(profile: UserProfile | undefined | null): st
 }
 
 /**
- * Builds a clipboard-ready AI prompt for a minimal Qurb-branded biodata image.
- * Omits phone, member/user ids, and other internal identifiers.
+ * Privacy-safe biodata fields shared by the AI prompt and PDF export.
+ * Omits phone, member/user ids, and band ids.
  */
-export function buildBiodataPrompt(profile: UserProfile): string {
+export function getBiodataContent(profile: UserProfile): BiodataContent {
   const bd = profile.basicDetails
   const ce = profile.careerEducation
   const fp = profile.faithPractice
   const pers = profile.personality
   const h = profile.health
   const fam = profile.family
-  const photos = getGalleryImageUrls(profile)
+  const displayName = bd?.fullName?.trim() || 'Member'
+
+  const sections = [
+    makeSection('Basic details', [
+      row('Full name', bd?.fullName),
+      row('Gender', bd?.gender),
+      row('Date of birth', bd?.dateOfBirth),
+      row('Marital status', bd?.maritalStatus),
+      row('Height', bd?.height != null ? `${bd.height} cm` : null),
+      row('City', bd?.city),
+      row('State', bd?.state),
+      row('Country', bd?.country),
+      row('Ethnicity', bd?.ethnicity),
+      row('Profile created for', bd?.profileCreatedFor),
+    ]),
+    makeSection('Career & education', [
+      row('Education', ce?.education),
+      row('Profession', ce?.profession),
+      row('Industry', ce?.industry),
+      row('Income', ce?.incomeLabel),
+      row('Saving assets', ce?.savingAssetsLabel),
+    ]),
+    makeSection('Faith', [
+      row('Sect', fp?.sect),
+      row('Caste', fp?.caste),
+      row('Islamic dress', fp?.islamicDress),
+      row('Religious practice', fp?.religiousPractice),
+      row('Born Muslim', fp?.bornMuslim),
+      row('Faith points', fp?.faithPoints),
+    ]),
+    makeSection('Personality', [row('Personality points', pers?.personalityPoints)]),
+    makeSection('Health & wellbeing', [
+      row('Smoke', h?.smoke),
+      row('Alcohol', h?.alcohol),
+      row('Emotional wellbeing', h?.emotionalWellBeing),
+      row('Therapy status', h?.therapyStatus),
+      row('Physical health', h?.physicalHealth),
+      row('Marrying with health challenges', h?.marryingWithHealthChallenges),
+      row('Halal food', h?.halalFood),
+    ]),
+    makeSection('Family', [
+      row('Family type', fam?.familyType),
+      row('Family status', fam?.familyStatus),
+      row('Father occupation', fam?.fatherOccupation),
+      row('Mother occupation', fam?.motherOccupation),
+      row('Brothers', fam?.brothers),
+      row('Sisters', fam?.sisters),
+    ]),
+    makeSection('Bio', [row('Bio', profile.bio)]),
+    makeSection('Partner preferences', partnerPreferenceRows(profile.partnerPreferences)),
+  ].filter((item): item is BiodataSection => Boolean(item))
+
+  return {
+    displayName,
+    photoUrls: getGalleryImageUrls(profile),
+    sections,
+  }
+}
+
+/**
+ * Builds a clipboard-ready AI prompt for a minimal Qurb-branded biodata image.
+ * Omits phone, member/user ids, and other internal identifiers.
+ */
+export function buildBiodataPrompt(profile: UserProfile): string {
+  const { displayName: _name, photoUrls, sections } = getBiodataContent(profile)
 
   const parts: string[] = [
     'Create a premium minimal-theme creative biodata card image for the Qurb Muslim marriage app.',
@@ -119,65 +199,23 @@ export function buildBiodataPrompt(profile: UserProfile): string {
     '- Clear section hierarchy (Career & Education, Faith, Faith points, Personality, Health, Family, Bio as available)',
     '- Faith points and personality as refined pill tags — not cluttered chip walls',
     '- Avoid spreadsheet/list look, tiny overcrowded icons, and low-contrast gray walls of text',
-    '- Optional refined footer tagline: “Finding your spouse, seeking His pleasure.”',
+    `- Optional refined footer tagline: “${QURB_BIODATA_TAGLINE}”`,
     '',
   ]
 
-  parts.push(
-    ...section('Basic details', [
-      line('Full name', bd?.fullName),
-      line('Gender', bd?.gender),
-      line('Date of birth', bd?.dateOfBirth),
-      line('Marital status', bd?.maritalStatus),
-      line('Height', bd?.height != null ? `${bd.height} cm` : null),
-      line('City', bd?.city),
-      line('State', bd?.state),
-      line('Country', bd?.country),
-      line('Ethnicity', bd?.ethnicity),
-      line('Profile created for', bd?.profileCreatedFor),
-    ]),
-    ...section('Career & education', [
-      line('Education', ce?.education),
-      line('Profession', ce?.profession),
-      line('Industry', ce?.industry),
-      line('Income', ce?.incomeLabel),
-      line('Saving assets', ce?.savingAssetsLabel),
-    ]),
-    ...section('Faith', [
-      line('Sect', fp?.sect),
-      line('Caste', fp?.caste),
-      line('Islamic dress', fp?.islamicDress),
-      line('Religious practice', fp?.religiousPractice),
-      line('Born Muslim', fp?.bornMuslim),
-      line('Faith points', fp?.faithPoints),
-    ]),
-    ...section('Personality', [line('Personality points', pers?.personalityPoints)]),
-    ...section('Health & wellbeing', [
-      line('Smoke', h?.smoke),
-      line('Alcohol', h?.alcohol),
-      line('Emotional wellbeing', h?.emotionalWellBeing),
-      line('Therapy status', h?.therapyStatus),
-      line('Physical health', h?.physicalHealth),
-      line('Marrying with health challenges', h?.marryingWithHealthChallenges),
-      line('Halal food', h?.halalFood),
-    ]),
-    ...section('Family', [
-      line('Family type', fam?.familyType),
-      line('Family status', fam?.familyStatus),
-      line('Father occupation', fam?.fatherOccupation),
-      line('Mother occupation', fam?.motherOccupation),
-      line('Brothers', fam?.brothers),
-      line('Sisters', fam?.sisters),
-    ]),
-    ...section('Bio', [present(profile.bio) ? String(profile.bio).trim() : null]),
-    ...section('Partner preferences', partnerPreferenceLines(profile.partnerPreferences)),
-  )
+  for (const section of sections) {
+    parts.push(`${section.title}:`)
+    for (const item of section.rows) {
+      parts.push(`- ${item.label}: ${item.value}`)
+    }
+    parts.push('')
+  }
 
-  if (photos.length) {
+  if (photoUrls.length) {
     parts.push(
       'Profile photos (STRICTLY use these exact URLs for the person — do not replace with any other face):',
     )
-    photos.forEach((url, index) => {
+    photoUrls.forEach((url, index) => {
       parts.push(`${index + 1}. ${url}`)
     })
     parts.push('')

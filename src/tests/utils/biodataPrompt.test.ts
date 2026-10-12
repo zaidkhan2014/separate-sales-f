@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { UserProfile } from '@/api/types'
-import { buildBiodataPrompt, getGalleryImageUrls } from '@/utils/biodataPrompt'
+import { buildBiodataPrompt, getBiodataContent, getGalleryImageUrls } from '@/utils/biodataPrompt'
 
 const profile: UserProfile = {
   id: 'profile-id-secret',
@@ -47,6 +47,21 @@ describe('getGalleryImageUrls', () => {
       'https://example.com/a.jpg',
       'https://example.com/b.jpg',
     ])
+  })
+})
+
+describe('getBiodataContent', () => {
+  it('includes name/education and excludes phone/ids/band ids', () => {
+    const content = getBiodataContent(profile)
+    expect(content.displayName).toBe('Aisha Khan')
+    expect(content.photoUrls[0]).toBe('https://example.com/a.jpg')
+    const flat = content.sections.flatMap((s) => s.rows.map((r) => `${r.label}:${r.value}`)).join('|')
+    expect(flat).toContain("Education:Bachelor's Degree")
+    expect(flat).toContain('Income:₹30–₹40 Lakh')
+    expect(flat).not.toContain('+919876543210')
+    expect(flat).not.toContain('user-should-not-appear')
+    expect(flat).not.toContain('Q999')
+    expect(flat).not.toContain('INC_IN_30_40')
   })
 })
 

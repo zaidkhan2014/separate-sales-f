@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/common/PageHeader'
 import { QueryFeedback } from '@/components/common/QueryFeedback'
 import { LeadUserLabel } from '@/components/common/LeadUserLabel'
 import { CopyBiodataPromptButton } from '@/components/sales/CopyBiodataPromptButton'
+import { DownloadBiodataPdfButton } from '@/components/sales/DownloadBiodataPdfButton'
 import { UserProfileDetailSections } from '@/components/users/UserProfileDetailSections'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -231,7 +232,10 @@ export default function SalesLeadDetailPage() {
           <Card className="min-w-0">
             <CardHeader className="flex flex-wrap items-center justify-between gap-2">
               <CardTitle>Full profile</CardTitle>
-              <CopyBiodataPromptButton profile={query.data.profile} />
+              <div className="flex flex-wrap gap-2">
+                <CopyBiodataPromptButton profile={query.data.profile} />
+                <DownloadBiodataPdfButton profile={query.data.profile} />
+              </div>
             </CardHeader>
             <CardContent>
               <UserProfileDetailSections profile={query.data.profile} />

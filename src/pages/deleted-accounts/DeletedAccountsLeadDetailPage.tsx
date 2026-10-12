@@ -5,6 +5,7 @@ import { Alert } from '@/components/ui/alert'
 import { PageHeader } from '@/components/common/PageHeader'
 import { QueryFeedback } from '@/components/common/QueryFeedback'
 import { LeadUserLabel } from '@/components/common/LeadUserLabel'
+import { CopyBiodataPromptButton } from '@/components/sales/CopyBiodataPromptButton'
 import { UserProfileDetailSections } from '@/components/users/UserProfileDetailSections'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -231,8 +232,9 @@ export default function DeletedAccountsLeadDetailPage() {
           </div>
 
           <Card className="min-w-0">
-            <CardHeader>
+            <CardHeader className="flex flex-wrap items-center justify-between gap-2">
               <CardTitle>Full profile</CardTitle>
+              <CopyBiodataPromptButton profile={query.data.profile} />
             </CardHeader>
             <CardContent>
               <UserProfileDetailSections profile={query.data.profile} />

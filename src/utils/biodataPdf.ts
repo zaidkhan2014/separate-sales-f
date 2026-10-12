@@ -27,32 +27,51 @@ export type DownloadBiodataPdfResult = {
   logoIncluded: boolean
 }
 
-async function loadViaImageElement(url: string): Promise<string | null> {
-  return await new Promise((resolve) => {
+type ImageLoadMode = 'preserve' | 'squareCrop'
+
+/** Encode image to JPEG, optionally center-cropping to square (no stretch). */
+function imageToJpegDataUrl(
+  img: HTMLImageElement,
+  mode: ImageLoadMode,
+  maxEdge = 900,
+): string | null {
+  const srcW = img.naturalWidth
+  const srcH = img.naturalHeight
+  if (!srcW || !srcH) return null
+
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return null
+
+  if (mode === 'squareCrop') {
+    const side = Math.min(srcW, srcH)
+    const sx = Math.floor((srcW - side) / 2)
+    const sy = Math.floor((srcH - side) / 2)
+    const out = Math.min(maxEdge, side)
+    canvas.width = out
+    canvas.height = out
+    ctx.drawImage(img, sx, sy, side, side, 0, 0, out, out)
+  } else {
+    const scale = Math.min(1, maxEdge / Math.max(srcW, srcH))
+    canvas.width = Math.max(1, Math.round(srcW * scale))
+    canvas.height = Math.max(1, Math.round(srcH * scale))
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+  }
+
+  return canvas.toDataURL('image/jpeg', 0.92)
+}
+
+function loadImageElement(url: string, crossOrigin: boolean): Promise<HTMLImageElement | null> {
+  return new Promise((resolve) => {
     const img = new Image()
-    img.crossOrigin = 'anonymous'
+    if (crossOrigin) img.crossOrigin = 'anonymous'
     const timer = window.setTimeout(() => {
       img.src = ''
       resolve(null)
     }, 12000)
     img.onload = () => {
       window.clearTimeout(timer)
-      try {
-        const canvas = document.createElement('canvas')
-        const maxEdge = 900
-        const scale = Math.min(1, maxEdge / Math.max(img.naturalWidth, img.naturalHeight))
-        canvas.width = Math.max(1, Math.round(img.naturalWidth * scale))
-        canvas.height = Math.max(1, Math.round(img.naturalHeight * scale))
-        const ctx = canvas.getContext('2d')
-        if (!ctx) {
-          resolve(null)
-          return
-        }
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-        resolve(canvas.toDataURL('image/jpeg', 0.92))
-      } catch {
-        resolve(null)
-      }
+      resolve(img)
     }
     img.onerror = () => {
       window.clearTimeout(timer)
@@ -62,28 +81,41 @@ async function loadViaImageElement(url: string): Promise<string | null> {
   })
 }
 
-async function loadViaFetch(url: string): Promise<string | null> {
+async function loadViaImageElement(url: string, mode: ImageLoadMode): Promise<string | null> {
+  const img = await loadImageElement(url, true)
+  if (!img) return null
   try {
-    const response = await fetch(url, { mode: 'cors' })
-    if (!response.ok) return null
-    const blob = await response.blob()
-    return await new Promise((resolve) => {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        resolve(typeof reader.result === 'string' ? reader.result : null)
-      }
-      reader.onerror = () => resolve(null)
-      reader.readAsDataURL(blob)
-    })
+    return imageToJpegDataUrl(img, mode)
   } catch {
     return null
   }
 }
 
-export async function loadImageAsDataUrl(url: string): Promise<string | null> {
-  const fromImage = await loadViaImageElement(url)
+async function loadViaFetch(url: string, mode: ImageLoadMode): Promise<string | null> {
+  try {
+    const response = await fetch(url, { mode: 'cors' })
+    if (!response.ok) return null
+    const blob = await response.blob()
+    const objectUrl = URL.createObjectURL(blob)
+    try {
+      const img = await loadImageElement(objectUrl, false)
+      if (!img) return null
+      return imageToJpegDataUrl(img, mode)
+    } finally {
+      URL.revokeObjectURL(objectUrl)
+    }
+  } catch {
+    return null
+  }
+}
+
+export async function loadImageAsDataUrl(
+  url: string,
+  mode: ImageLoadMode = 'preserve',
+): Promise<string | null> {
+  const fromImage = await loadViaImageElement(url, mode)
   if (fromImage) return fromImage
-  return loadViaFetch(url)
+  return loadViaFetch(url, mode)
 }
 
 function slugifyName(name: string): string {
@@ -187,8 +219,10 @@ export async function downloadBiodataPdf(
 ): Promise<DownloadBiodataPdfResult> {
   const content = getBiodataContent(profile, options)
   const [logoDataUrl, photoDataUrl] = await Promise.all([
-    loadImageAsDataUrl(QURB_LOGO_URL),
-    content.photoUrls[0] ? loadImageAsDataUrl(content.photoUrls[0]) : Promise.resolve(null),
+    loadImageAsDataUrl(QURB_LOGO_URL, 'preserve'),
+    content.photoUrls[0]
+      ? loadImageAsDataUrl(content.photoUrls[0], 'squareCrop')
+      : Promise.resolve(null),
   ])
 
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
@@ -268,23 +302,25 @@ export function renderBiodataPdf(
     }
   }
 
-  // Key facts card (2 columns)
+  // Key facts card (2 columns) — label stacked above value with enough pitch to avoid overlap
   if (content.keyFacts.length) {
     const colW = (CONTENT_W - 6) / 2
-    const lineH = 5.2
+    const rowPitch = 11
+    const padTop = 5
+    const padBottom = 4
     const rowsNeeded = Math.ceil(content.keyFacts.length / 2)
-    const blockH = 8 + rowsNeeded * lineH
+    const blockH = padTop + rowsNeeded * rowPitch + padBottom
     ensureSpace(blockH + 4)
 
     doc.setFillColor(...CARD)
     doc.setDrawColor(230, 220, 228)
     doc.roundedRect(MARGIN, y, CONTENT_W, blockH, 2, 2, 'FD')
-    let factY = y + 6
+    const factY = y + padTop + 3
     content.keyFacts.forEach((fact, index) => {
       const col = index % 2
       const rowIndex = Math.floor(index / 2)
       const x = MARGIN + 4 + col * (colW + 6)
-      const fy = factY + rowIndex * lineH
+      const fy = factY + rowIndex * rowPitch
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(8)
       doc.setTextColor(...MUTED)
@@ -293,7 +329,7 @@ export function renderBiodataPdf(
       doc.setFontSize(9)
       doc.setTextColor(...INK)
       const valueLines = doc.splitTextToSize(sanitizePdfText(fact.value), colW - 2) as string[]
-      doc.text(valueLines[0] ?? '', x, fy + 3.5)
+      doc.text(valueLines[0] ?? '', x, fy + 4.5)
     })
     y += blockH + 6
   }

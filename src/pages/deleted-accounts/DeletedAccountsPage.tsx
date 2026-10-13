@@ -513,6 +513,8 @@ export default function DeletedAccountsPage() {
                   <th className="px-3 py-2">Lead</th>
                   <th className="px-3 py-2">Phone</th>
                   <th className="px-3 py-2">Created</th>
+                  <th className="px-3 py-2">State</th>
+                  <th className="px-3 py-2">City</th>
                   <th className="px-3 py-2">Photo</th>
                   <th className="px-3 py-2">Status</th>
                   <th className="px-3 py-2">Education</th>
@@ -536,6 +538,8 @@ export default function DeletedAccountsPage() {
                     </td>
                     <td className="px-3 py-2 whitespace-nowrap">{lead.phone ?? '—'}</td>
                     <td className="px-3 py-2 whitespace-nowrap">{formatDateTime(lead.createdAt)}</td>
+                    <td className="px-3 py-2">{lead.state ?? '—'}</td>
+                    <td className="px-3 py-2">{lead.city ?? '—'}</td>
                     <td className="px-3 py-2">
                       <LeadPhotoThumb
                         url={lead.primaryImageUrl}

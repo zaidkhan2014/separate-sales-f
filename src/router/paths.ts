@@ -12,4 +12,8 @@ export const routes = {
   deletedAccountsFollowUps: '/deleted-accounts/follow-ups',
   deletedAccountsPerformance: '/deleted-accounts/performance',
   deletedAccountsLeadDetail: (userId: string) => `/deleted-accounts/${userId}`,
+  activeUsers: '/active-users',
+  activeUsersFollowUps: '/active-users/follow-ups',
+  activeUsersPerformance: '/active-users/performance',
+  activeUsersLeadDetail: (userId: string) => `/active-users/${userId}`,
 } as const

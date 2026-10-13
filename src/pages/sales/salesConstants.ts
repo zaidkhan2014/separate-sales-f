@@ -84,6 +84,17 @@ export const SALES_SUMMARY_METRIC_LABELS: Record<string, string> = {
   sales_converted: 'Converted',
   sales_follow_up_due_today: 'Follow-up due today',
   sales_follow_up_overdue: 'Follow-up overdue',
+  active_sales_total_leads: 'Total leads',
+  active_sales_call_remaining: 'Call remaining',
+  active_sales_in_process: 'In process',
+  active_sales_already_called: 'Already called',
+  active_sales_call_not_picked: 'Call not picked',
+  active_sales_call_back_later: 'Call back later',
+  active_sales_interested: 'Interested',
+  active_sales_not_interested: 'Not interested',
+  active_sales_converted: 'Converted',
+  active_sales_follow_up_due_today: 'Follow-up due today',
+  active_sales_follow_up_overdue: 'Follow-up overdue',
 }
 
 export function salesSummaryMetricLabel(key: string): string {

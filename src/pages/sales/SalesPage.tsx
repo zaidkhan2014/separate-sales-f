@@ -514,6 +514,8 @@ export default function SalesPage() {
               <thead className="bg-slate-100 text-slate-600">
                 <tr>
                   <th className="px-3 py-2">Lead</th>
+                  <th className="px-3 py-2">Phone</th>
+                  <th className="px-3 py-2">Created</th>
                   <th className="px-3 py-2">Photo</th>
                   <th className="px-3 py-2">Status</th>
                   <th className="px-3 py-2">Education</th>
@@ -534,6 +536,8 @@ export default function SalesPage() {
                     <td className="px-3 py-2">
                       <LeadUserLabel userId={lead.userId} label={lead.fullName ?? lead.userId} />
                     </td>
+                    <td className="px-3 py-2 whitespace-nowrap">{lead.phone ?? '—'}</td>
+                    <td className="px-3 py-2 whitespace-nowrap">{formatDateTime(lead.createdAt)}</td>
                     <td className="px-3 py-2">
                       <LeadPhotoThumb
                         url={lead.primaryImageUrl}

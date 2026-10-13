@@ -1,8 +1,9 @@
-import { Crown, Database, LogOut, PieChart, UserX } from 'lucide-react'
+import { Crown, Database, LogOut, PieChart, UserX, UsersRound } from 'lucide-react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth/useAuth'
 import { useAdminVipPendingCount } from '@/hooks/api/useAdminVip'
 import { cn } from '@/lib/cn'
+import { ActiveUsersSubNav } from '@/pages/active-users/ActiveUsersSubNav'
 import { DeletedAccountsSubNav } from '@/pages/deleted-accounts/DeletedAccountsSubNav'
 import { SalesSubNav } from '@/pages/sales/SalesSubNav'
 import { VipSubNav } from '@/pages/vip/VipSubNav'
@@ -26,6 +27,10 @@ function isDeletedSection(pathname: string) {
   return pathname.startsWith(routes.deletedAccounts)
 }
 
+function isActiveUsersSection(pathname: string) {
+  return pathname.startsWith(routes.activeUsers)
+}
+
 function isDemographicsSection(pathname: string) {
   return pathname.startsWith(routes.demographics)
 }
@@ -33,6 +38,7 @@ function isDemographicsSection(pathname: string) {
 function sidebarLinkActive(pathname: string, to: string): boolean {
   if (to === routes.leads) return isSalesSection(pathname)
   if (to === routes.vip) return isVipSection(pathname)
+  if (to === routes.activeUsers) return isActiveUsersSection(pathname)
   if (to === routes.deletedAccounts) return isDeletedSection(pathname)
   if (to === routes.demographics) return isDemographicsSection(pathname)
   return pathname === to || pathname.startsWith(`${to}/`)
@@ -41,6 +47,7 @@ function sidebarLinkActive(pathname: string, to: string): boolean {
 const links = [
   { to: routes.demographics, label: 'Demographics', icon: PieChart },
   { to: routes.leads, label: 'Sales', icon: Database },
+  { to: routes.activeUsers, label: 'Active Users', icon: UsersRound },
   { to: routes.vip, label: 'VIP Customers', icon: Crown, showVipBadge: true },
   { to: routes.deletedAccounts, label: 'Deleted Accounts', icon: UserX },
 ] as const
@@ -66,6 +73,9 @@ function VipPendingBadge({ count, compact }: { count: number; compact?: boolean 
 function sectionSubNav(pathname: string) {
   if (isDeletedSection(pathname)) {
     return <DeletedAccountsSubNav />
+  }
+  if (isActiveUsersSection(pathname)) {
+    return <ActiveUsersSubNav />
   }
   if (isVipSection(pathname)) {
     return <VipSubNav />

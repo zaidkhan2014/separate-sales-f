@@ -25,6 +25,7 @@ const ActiveUsersFollowUpsPage = lazy(() => import('@/pages/active-users/ActiveU
 const ActiveUsersPerformancePage = lazy(() => import('@/pages/active-users/ActiveUsersPerformancePage'))
 const ActiveUsersLeadDetailPage = lazy(() => import('@/pages/active-users/ActiveUsersLeadDetailPage'))
 const DemographicsPage = lazy(() => import('@/pages/demographics/DemographicsPage'))
+const OnboardingDropoffPage = lazy(() => import('@/pages/onboarding-dropoff/OnboardingDropoffPage'))
 const VipCustomersPage = lazy(() => import('@/pages/vip/VipCustomersPage'))
 const VipFollowUpsPage = lazy(() => import('@/pages/vip/VipFollowUpsPage'))
 const VipLeadDetailPage = lazy(() => import('@/pages/vip/VipLeadDetailPage'))
@@ -72,6 +73,7 @@ export const router = createBrowserRouter([
           { path: 'performance', element: <SalesPerformancePage /> },
           { path: 'leads/:userId', element: <SalesLeadDetailPage /> },
           { path: routes.demographics.slice(1), element: <DemographicsPage /> },
+          { path: routes.onboardingDropoff.slice(1), element: <OnboardingDropoffPage /> },
           { path: routes.vip.slice(1), element: <VipCustomersPage /> },
           { path: 'vip/follow-ups', element: <VipFollowUpsPage /> },
           { path: 'vip/:userId', element: <VipLeadDetailPage /> },

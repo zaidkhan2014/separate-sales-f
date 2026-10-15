@@ -1,6 +1,7 @@
 export const routes = {
   login: '/login',
   demographics: '/demographics',
+  onboardingDropoff: '/onboarding-dropoff',
   leads: '/leads',
   leadDetail: (userId: string) => `/leads/${userId}`,
   followUps: '/follow-ups',

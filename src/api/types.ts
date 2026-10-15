@@ -598,6 +598,44 @@ export interface GenderMonitoringFilters extends AnalyticsFilters {
   cityLimit?: number
 }
 
+export type DropoffGender = 'Male' | 'Female' | 'Unknown'
+export type DropoffGenderSource = 'CACHED' | 'CLAIMED' | 'REKOGNITION' | 'UNKNOWN'
+export type DropoffGenderFilter = 'ALL' | DropoffGender
+
+export interface AdminOnboardingDropoffUserRow {
+  userId: string
+  memberId: string | null
+  phone: string | null
+  createdAt: IsoInstant | null
+  mediaCount: number
+  gender: DropoffGender
+  genderSource: DropoffGenderSource
+  genderCheckConfidence: number | null
+  primaryPublicId: string | null
+}
+
+export interface AdminOnboardingDropoffWithMediaResponse {
+  day: string
+  dayStart: IsoInstant
+  dayEnd: IsoInstant
+  maleCount: number
+  femaleCount: number
+  unknownCount: number
+  totalCount: number
+  genderFilter: DropoffGenderFilter
+  items: AdminOnboardingDropoffUserRow[]
+  page: number
+  size: number
+  total: number
+}
+
+export interface OnboardingDropoffFilters {
+  day: string
+  gender?: DropoffGenderFilter
+  page?: number
+  size?: number
+}
+
 export interface SalesLeadsFilters {
   start?: IsoInstant
   end?: IsoInstant

@@ -1,4 +1,4 @@
-import { Crown, Database, LogOut, PieChart, UserX, UsersRound } from 'lucide-react'
+import { Crown, Database, LogOut, PieChart, UserMinus, UserX, UsersRound } from 'lucide-react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth/useAuth'
 import { useAdminVipPendingCount } from '@/hooks/api/useAdminVip'
@@ -35,17 +35,27 @@ function isDemographicsSection(pathname: string) {
   return pathname.startsWith(routes.demographics)
 }
 
+function isOnboardingDropoffSection(pathname: string) {
+  return pathname.startsWith(routes.onboardingDropoff)
+}
+
 function sidebarLinkActive(pathname: string, to: string): boolean {
   if (to === routes.leads) return isSalesSection(pathname)
   if (to === routes.vip) return isVipSection(pathname)
   if (to === routes.activeUsers) return isActiveUsersSection(pathname)
   if (to === routes.deletedAccounts) return isDeletedSection(pathname)
   if (to === routes.demographics) return isDemographicsSection(pathname)
+  if (to === routes.onboardingDropoff) return isOnboardingDropoffSection(pathname)
   return pathname === to || pathname.startsWith(`${to}/`)
+}
+
+function isExactNavEnd(to: string): boolean {
+  return to === routes.demographics || to === routes.onboardingDropoff
 }
 
 const links = [
   { to: routes.demographics, label: 'Demographics', icon: PieChart },
+  { to: routes.onboardingDropoff, label: 'Onboarding Dropoff', icon: UserMinus },
   { to: routes.leads, label: 'Sales', icon: Database },
   { to: routes.activeUsers, label: 'Active Users', icon: UsersRound },
   { to: routes.vip, label: 'VIP Customers', icon: Crown, showVipBadge: true },
@@ -107,7 +117,7 @@ export function SalesShell() {
               <NavLink
                 key={item.to}
                 to={item.to}
-                end={item.to === routes.demographics}
+                end={isExactNavEnd(item.to)}
                 className={() =>
                   cn(
                     'flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-600 transition hover:bg-slate-100',
@@ -147,7 +157,7 @@ export function SalesShell() {
                 <NavLink
                   key={`mobile-${item.to}`}
                   to={item.to}
-                  end={item.to === routes.demographics}
+                  end={isExactNavEnd(item.to)}
                   className={() =>
                     cn(
                       'relative rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-600',

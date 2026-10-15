@@ -60,6 +60,9 @@ describe('adminEndpoints', () => {
     expect(adminEndpoints.analytics.demographics).toBe('/api/admin/analytics/demographics')
     expect(adminEndpoints.analytics.genderMonitoring).toBe('/api/admin/analytics/gender-monitoring')
     expect(adminEndpoints.analytics.geoByGender).toBe('/api/admin/analytics/geo-by-gender')
+    expect(adminEndpoints.analytics.onboardingDropoffWithMedia).toBe(
+      '/api/admin/analytics/onboarding-dropoff-with-media',
+    )
   })
 
   it('creates vip endpoints', () => {

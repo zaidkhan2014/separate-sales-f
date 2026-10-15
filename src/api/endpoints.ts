@@ -7,6 +7,7 @@ export const adminEndpoints = {
     demographics: `${ADMIN_API_BASE}/analytics/demographics`,
     genderMonitoring: `${ADMIN_API_BASE}/analytics/gender-monitoring`,
     geoByGender: `${ADMIN_API_BASE}/analytics/geo-by-gender`,
+    onboardingDropoffWithMedia: `${ADMIN_API_BASE}/analytics/onboarding-dropoff-with-media`,
   },
   geo: {
     countries: `${GEO_API_BASE}/countries`,

@@ -29,8 +29,12 @@ export type DownloadBiodataPdfResult = {
 
 type ImageLoadMode = 'preserve' | 'squareCrop'
 
-/** Encode image to JPEG, optionally center-cropping to square (no stretch). */
-function imageToJpegDataUrl(
+/**
+ * Encode image for PDF embedding.
+ * - preserve: JPEG, aspect kept
+ * - squareCrop: center-crop to square, then circular PNG mask (no jsPDF clip needed)
+ */
+function imageToDataUrl(
   img: HTMLImageElement,
   mode: ImageLoadMode,
   maxEdge = 900,
@@ -51,13 +55,20 @@ function imageToJpegDataUrl(
     canvas.width = out
     canvas.height = out
     ctx.drawImage(img, sx, sy, side, side, 0, 0, out, out)
-  } else {
-    const scale = Math.min(1, maxEdge / Math.max(srcW, srcH))
-    canvas.width = Math.max(1, Math.round(srcW * scale))
-    canvas.height = Math.max(1, Math.round(srcH * scale))
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+    // Circular alpha mask so PDF viewers never need clip()
+    ctx.globalCompositeOperation = 'destination-in'
+    ctx.beginPath()
+    ctx.arc(out / 2, out / 2, out / 2, 0, Math.PI * 2)
+    ctx.closePath()
+    ctx.fill()
+    ctx.globalCompositeOperation = 'source-over'
+    return canvas.toDataURL('image/png')
   }
 
+  const scale = Math.min(1, maxEdge / Math.max(srcW, srcH))
+  canvas.width = Math.max(1, Math.round(srcW * scale))
+  canvas.height = Math.max(1, Math.round(srcH * scale))
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
   return canvas.toDataURL('image/jpeg', 0.92)
 }
 
@@ -85,7 +96,7 @@ async function loadViaImageElement(url: string, mode: ImageLoadMode): Promise<st
   const img = await loadImageElement(url, true)
   if (!img) return null
   try {
-    return imageToJpegDataUrl(img, mode)
+    return imageToDataUrl(img, mode)
   } catch {
     return null
   }
@@ -100,7 +111,7 @@ async function loadViaFetch(url: string, mode: ImageLoadMode): Promise<string | 
     try {
       const img = await loadImageElement(objectUrl, false)
       if (!img) return null
-      return imageToJpegDataUrl(img, mode)
+      return imageToDataUrl(img, mode)
     } finally {
       URL.revokeObjectURL(objectUrl)
     }
@@ -144,32 +155,16 @@ function drawPortrait(
   const x = cx - radius
   const y = cy - radius
 
+  // Pre-masked circular PNG — never use doc.clip() (breaks page-1 text in many desktop viewers)
   if (dataUrl) {
     try {
-      doc.saveGraphicsState()
-      doc.circle(cx, cy, radius)
-      ;(doc as jsPDF & { clip: () => void }).clip()
       doc.addImage(dataUrl, imageFormatFromDataUrl(dataUrl), x, y, diameter, diameter)
-      doc.restoreGraphicsState()
       doc.setDrawColor(...GOLD)
       doc.setLineWidth(1.4)
       doc.circle(cx, cy, radius, 'S')
       return
     } catch {
-      try {
-        doc.restoreGraphicsState()
-      } catch {
-        // ignore
-      }
-      try {
-        doc.addImage(dataUrl, imageFormatFromDataUrl(dataUrl), x, y, diameter, diameter)
-        doc.setDrawColor(...GOLD)
-        doc.setLineWidth(1.4)
-        doc.circle(cx, cy, radius, 'S')
-        return
-      } catch {
-        // initials
-      }
+      // fall through to initials
     }
   }
 

@@ -4,6 +4,7 @@ import { EmptyState } from '@/components/common/EmptyState'
 import { PageHeader } from '@/components/common/PageHeader'
 import { QueryFeedback } from '@/components/common/QueryFeedback'
 import { LeadUserLabel } from '@/components/common/LeadUserLabel'
+import { BioCell } from '@/components/sales/BioCell'
 import { LeadPhotoThumb } from '@/components/sales/LeadPhotoThumb'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -520,6 +521,7 @@ export default function DeletedAccountsPage() {
                   <th className="px-3 py-2">Education</th>
                   <th className="px-3 py-2">Profession</th>
                   <th className="px-3 py-2">Bio</th>
+                  <th className="px-3 py-2">Account status</th>
                   <th className="px-3 py-2">Assigned</th>
                   <th className="px-3 py-2">Score</th>
                   <th className="px-3 py-2">Income</th>
@@ -550,14 +552,9 @@ export default function DeletedAccountsPage() {
                     <td className="px-3 py-2">{lead.education ?? '--'}</td>
                     <td className="px-3 py-2">{lead.profession ?? '--'}</td>
                     <td className="max-w-[220px] px-3 py-2">
-                      {lead.bio ? (
-                        <p className="line-clamp-2" title={lead.bio}>
-                          {lead.bio}
-                        </p>
-                      ) : (
-                        '--'
-                      )}
+                      <BioCell bio={lead.bio} />
                     </td>
+                    <td className="px-3 py-2">{lead.accountStatus ?? '—'}</td>
                     <td className="px-3 py-2">{lead.assignedToAdminId ?? '--'}</td>
                     <td className="px-3 py-2">{lead.leadScore ?? '--'}</td>
                     <td className="px-3 py-2">{lead.incomeLabel ?? '--'}</td>

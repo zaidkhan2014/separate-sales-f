@@ -1,4 +1,4 @@
-import { Crown, Database, LogOut, PieChart, UserMinus, Users, UserX, UsersRound } from 'lucide-react'
+import { Crown, Database, LogOut, PieChart, UserCheck, UserMinus, Users, UserX, UsersRound } from 'lucide-react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth/useAuth'
 import { useAdminVipPendingCount } from '@/hooks/api/useAdminVip'
@@ -43,6 +43,10 @@ function isUsersSection(pathname: string) {
   return pathname === routes.users || pathname.startsWith(`${routes.users}/`)
 }
 
+function isReviewQueueSection(pathname: string) {
+  return pathname.startsWith(routes.reviewQueue)
+}
+
 function sidebarLinkActive(pathname: string, to: string): boolean {
   if (to === routes.leads) return isSalesSection(pathname)
   if (to === routes.vip) return isVipSection(pathname)
@@ -51,17 +55,24 @@ function sidebarLinkActive(pathname: string, to: string): boolean {
   if (to === routes.demographics) return isDemographicsSection(pathname)
   if (to === routes.onboardingDropoff) return isOnboardingDropoffSection(pathname)
   if (to === routes.users) return isUsersSection(pathname)
+  if (to === routes.reviewQueue) return isReviewQueueSection(pathname)
   return pathname === to || pathname.startsWith(`${to}/`)
 }
 
 function isExactNavEnd(to: string): boolean {
-  return to === routes.demographics || to === routes.onboardingDropoff || to === routes.users
+  return (
+    to === routes.demographics ||
+    to === routes.onboardingDropoff ||
+    to === routes.users ||
+    to === routes.reviewQueue
+  )
 }
 
 const links = [
   { to: routes.demographics, label: 'Demographics', icon: PieChart },
   { to: routes.onboardingDropoff, label: 'Onboarding Dropoff', icon: UserMinus },
   { to: routes.users, label: 'Users', icon: Users },
+  { to: routes.reviewQueue, label: 'Review Queue', icon: UserCheck },
   { to: routes.leads, label: 'Sales', icon: Database },
   { to: routes.activeUsers, label: 'Active Users', icon: UsersRound },
   { to: routes.vip, label: 'VIP Customers', icon: Crown, showVipBadge: true },

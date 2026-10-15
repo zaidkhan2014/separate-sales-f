@@ -1,8 +1,15 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { adminClient } from '@/api/client'
 import { adminEndpoints } from '@/api/endpoints'
 import { cleanQueryParams } from '@/api/params'
-import type { AdminUserDetailResponse, AdminUserSearchResponse, UserSearchFilters } from '@/api/types'
+import type {
+  AdminForceApproveReviewResponse,
+  AdminReviewQueueResponse,
+  AdminUserDetailResponse,
+  AdminUserSearchResponse,
+  ReviewQueueFilters,
+  UserSearchFilters,
+} from '@/api/types'
 
 export type UserListMode = 'search' | 'newly-joined' | 'profile-rejected' | 'bio-rejected' | 'deleted'
 
@@ -55,5 +62,34 @@ export function useAdminUserDetail(userId: string | undefined) {
       return response.data
     },
     enabled: Boolean(userId),
+  })
+}
+
+export function useAdminReviewQueue(filters: ReviewQueueFilters) {
+  return useQuery({
+    queryKey: ['admin-review-queue', filters],
+    queryFn: async () => {
+      const response = await adminClient.get<AdminReviewQueueResponse>(adminEndpoints.users.reviewQueue, {
+        params: cleanQueryParams(filters),
+      })
+      return response.data
+    },
+  })
+}
+
+export function useForceApproveReview() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (userId: string) => {
+      const response = await adminClient.post<AdminForceApproveReviewResponse>(
+        adminEndpoints.users.forceApproveReview(userId),
+      )
+      return response.data
+    },
+    onSuccess: (data) => {
+      if (data.success) {
+        void queryClient.invalidateQueries({ queryKey: ['admin-review-queue'] })
+      }
+    },
   })
 }

@@ -4,6 +4,7 @@ export const routes = {
   onboardingDropoff: '/onboarding-dropoff',
   users: '/users',
   userDetail: (userId: string) => `/users/${userId}`,
+  reviewQueue: '/review-queue',
   leads: '/leads',
   leadDetail: (userId: string) => `/leads/${userId}`,
   followUps: '/follow-ups',

@@ -28,6 +28,7 @@ const DemographicsPage = lazy(() => import('@/pages/demographics/DemographicsPag
 const OnboardingDropoffPage = lazy(() => import('@/pages/onboarding-dropoff/OnboardingDropoffPage'))
 const UsersPage = lazy(() => import('@/pages/users/UsersPage'))
 const UserDetailPage = lazy(() => import('@/pages/users/UserDetailPage'))
+const ReviewQueuePage = lazy(() => import('@/pages/review-queue/ReviewQueuePage'))
 const VipCustomersPage = lazy(() => import('@/pages/vip/VipCustomersPage'))
 const VipFollowUpsPage = lazy(() => import('@/pages/vip/VipFollowUpsPage'))
 const VipLeadDetailPage = lazy(() => import('@/pages/vip/VipLeadDetailPage'))
@@ -78,6 +79,7 @@ export const router = createBrowserRouter([
           { path: routes.onboardingDropoff.slice(1), element: <OnboardingDropoffPage /> },
           { path: routes.users.slice(1), element: <UsersPage /> },
           { path: 'users/:userId', element: <UserDetailPage /> },
+          { path: routes.reviewQueue.slice(1), element: <ReviewQueuePage /> },
           { path: routes.vip.slice(1), element: <VipCustomersPage /> },
           { path: 'vip/follow-ups', element: <VipFollowUpsPage /> },
           { path: 'vip/:userId', element: <VipLeadDetailPage /> },

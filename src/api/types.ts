@@ -198,6 +198,76 @@ export interface UserSearchFilters {
 /** Query filter for basicDetails.profileCreatedFor buckets (omit = Any). */
 export type ProfileCreatedForFilter = 'SELF' | 'NON_SELF'
 
+export type ProfileReviewCode =
+  | 'SELFIE_REQUIRED'
+  | 'SELFIE_FACE_MISMATCH'
+  | 'GENDER_MISMATCH'
+  | 'NSFW_BANNED'
+  | 'GENDER_CHANGED_PENDING_REVIEW'
+
+export type ProfileStatusQueue = 'REJECTED' | 'PENDING'
+
+export interface AdminReviewQueueItem {
+  userId: string
+  memberId: string | null
+  phone: string | null
+  fullName: string | null
+  gender: string | null
+  profileCreatedFor: string | null
+  city: string | null
+  state: string | null
+  country: string | null
+  profileStatus: string | null
+  accountStatus: string | null
+  subscribed: boolean
+  verifiedProfile: boolean
+  createdAt: IsoInstant | null
+  onboardingCompletedAt: IsoInstant | null
+  reviewStatus: string | null
+  reviewCode: string | null
+  reviewMessage: string | null
+  faceSimilarity: number | null
+  liveSelfiePublicId: string | null
+  liveSelfieUrl: string | null
+  reviewedPrimaryPublicId: string | null
+  reviewedPrimaryUrl: string | null
+  reviewSubmittedAt: IsoInstant | null
+  reviewReviewedAt: IsoInstant | null
+  canForceApprove: boolean
+  profile: UserProfile
+}
+
+export interface AdminReviewQueueResponse {
+  items: AdminReviewQueueItem[]
+  page: number
+  size: number
+  total: number
+}
+
+export interface AdminForceApproveReviewResponse {
+  userId: string | null
+  memberId: string | null
+  previousProfileStatus: string | null
+  previousReviewCode: string | null
+  previousReviewStatus: string | null
+  profileStatus: string | null
+  reviewStatus: string | null
+  verifiedProfile: boolean
+  success: boolean
+  message: string | null
+}
+
+export interface ReviewQueueFilters {
+  gender?: string
+  profileStatus?: ProfileStatusQueue
+  reviewCode?: ProfileReviewCode
+  profileCreatedFor?: ProfileCreatedForFilter
+  start?: IsoInstant
+  end?: IsoInstant
+  page?: number
+  size?: number
+}
+
 /** Query filter for profile bio presence (omit = Any). */
 export type BioFilter = 'AVAILABLE' | 'NOT_AVAILABLE'
 export type ContactPrivacy = 'PREMIUM' | 'PREFERENCE'

@@ -72,6 +72,10 @@ describe('adminEndpoints', () => {
     expect(adminEndpoints.users.profileRejected).toBe('/api/admin/users/profile-rejected')
     expect(adminEndpoints.users.bioRejected).toBe('/api/admin/users/bio-rejected')
     expect(adminEndpoints.users.deleted).toBe('/api/admin/users/deleted')
+    expect(adminEndpoints.users.reviewQueue).toBe('/api/admin/users/review-queue')
+    expect(adminEndpoints.users.forceApproveReview('user-1')).toBe(
+      '/api/admin/users/user-1/force-approve-review',
+    )
   })
 
   it('creates vip endpoints', () => {

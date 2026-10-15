@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { EmptyState } from '@/components/common/EmptyState'
-import { LeadUserLabel } from '@/components/common/LeadUserLabel'
 import { PageHeader } from '@/components/common/PageHeader'
+import { UserLink } from '@/components/common/UserLink'
 import { QueryFeedback } from '@/components/common/QueryFeedback'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -158,7 +158,7 @@ export default function OnboardingDropoffPage() {
                         {query.data.items.map((row) => (
                           <tr key={row.userId} className="border-t border-slate-100">
                             <td className="px-3 py-2">
-                              <LeadUserLabel userId={row.userId} label={row.memberId ?? row.userId} />
+                              <UserLink userId={row.userId} label={row.memberId ?? row.userId} />
                             </td>
                             <td className="px-3 py-2">{row.phone ?? '--'}</td>
                             <td className="px-3 py-2">{formatDateTime(row.createdAt)}</td>

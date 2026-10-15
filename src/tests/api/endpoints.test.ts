@@ -65,6 +65,15 @@ describe('adminEndpoints', () => {
     )
   })
 
+  it('creates users endpoints', () => {
+    expect(adminEndpoints.users.search).toBe('/api/admin/users/search')
+    expect(adminEndpoints.users.detail('user-1')).toBe('/api/admin/users/user-1')
+    expect(adminEndpoints.users.newlyJoined).toBe('/api/admin/users/newly-joined')
+    expect(adminEndpoints.users.profileRejected).toBe('/api/admin/users/profile-rejected')
+    expect(adminEndpoints.users.bioRejected).toBe('/api/admin/users/bio-rejected')
+    expect(adminEndpoints.users.deleted).toBe('/api/admin/users/deleted')
+  })
+
   it('creates vip endpoints', () => {
     expect(adminEndpoints.vip.leads).toBe('/api/admin/vip/leads')
     expect(adminEndpoints.vip.detail('user-1')).toBe('/api/admin/vip/leads/user-1')

@@ -129,6 +129,72 @@ export type ProfileStatus = 'APPROVED' | 'PENDING' | 'REJECTED'
 export type BioModerationStatus = 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED'
 export type AccountStatus = 'ACTIVE' | 'DELETED' | 'BANNED'
 
+export interface AdminUserSummary {
+  userId: string
+  memberId: string | null
+  phone: string | null
+  fullName: string | null
+  gender: string | null
+  city: string | null
+  state: string | null
+  country: string | null
+  subscribed: boolean
+  profileStatus: string | null
+  accountStatus: string | null
+  createdAt: IsoInstant | null
+  lastLoginAt: IsoInstant | null
+  lastActivityAt: IsoInstant | null
+}
+
+export interface AdminUserSearchResponse {
+  items: AdminUserSummary[]
+  page: number
+  size: number
+  total: number
+}
+
+export interface AdminUserDetailResponse {
+  userId: string
+  memberId: string | null
+  phone: string | null
+  fullName: string | null
+  gender: string | null
+  city: string | null
+  state: string | null
+  country: string | null
+  profileStatus: string | null
+  accountStatus: string | null
+  subscribed: boolean
+  otpVerified: boolean
+  profileRegistered: boolean
+  signupAt: IsoInstant | null
+  otpVerifiedAt: IsoInstant | null
+  onboardingCompletedAt: IsoInstant | null
+  profileCompletedAt: IsoInstant | null
+  lastLoginAt: IsoInstant | null
+  lastActivityAt: IsoInstant | null
+  reportsAgainstUser: number
+  blocksByUser: number
+  blocksAgainstUser: number
+  activeMatches: number
+  initiatedChats: number
+  interactionsSent: number
+  profile: UserProfile
+}
+
+export interface UserSearchFilters {
+  query?: string
+  profileStatus?: ProfileStatus
+  bioModerationStatus?: BioModerationStatus
+  accountStatus?: AccountStatus
+  gender?: string
+  subscribed?: boolean
+  createdStart?: IsoInstant
+  createdEnd?: IsoInstant
+  page?: number
+  size?: number
+}
+
 /** Query filter for basicDetails.profileCreatedFor buckets (omit = Any). */
 export type ProfileCreatedForFilter = 'SELF' | 'NON_SELF'
 

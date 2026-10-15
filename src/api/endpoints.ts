@@ -14,6 +14,14 @@ export const adminEndpoints = {
     states: `${GEO_API_BASE}/states`,
     cities: `${GEO_API_BASE}/cities`,
   },
+  users: {
+    search: `${ADMIN_API_BASE}/users/search`,
+    detail: (userId: string) => `${ADMIN_API_BASE}/users/${userId}`,
+    newlyJoined: `${ADMIN_API_BASE}/users/newly-joined`,
+    profileRejected: `${ADMIN_API_BASE}/users/profile-rejected`,
+    bioRejected: `${ADMIN_API_BASE}/users/bio-rejected`,
+    deleted: `${ADMIN_API_BASE}/users/deleted`,
+  },
   sales: {
     leads: `${ADMIN_API_BASE}/sales/leads`,
     detail: (userId: string) => `${ADMIN_API_BASE}/sales/leads/${userId}`,

@@ -42,7 +42,7 @@ import {
   type SalesListUrlState,
 } from '@/pages/sales/salesListSearchParams'
 import { routes } from '@/router/paths'
-import { formatCompactNumber, formatDateTime } from '@/utils/format'
+import { formatCompactNumber, formatDate, formatDateTime } from '@/utils/format'
 
 const PAGE_SIZE = 20
 
@@ -528,6 +528,9 @@ export default function SalesPage() {
                   <th className="px-3 py-2">Assigned</th>
                   <th className="px-3 py-2">Score</th>
                   <th className="px-3 py-2">Income</th>
+                  <th className="px-3 py-2">Age</th>
+                  <th className="px-3 py-2">DOB</th>
+                  <th className="px-3 py-2">Marital</th>
                   <th className="px-3 py-2">Outcome</th>
                   <th className="px-3 py-2">Note</th>
                   <th className="px-3 py-2">Follow-up</th>
@@ -560,6 +563,9 @@ export default function SalesPage() {
                     <td className="px-3 py-2">{lead.assignedToAdminId ?? '--'}</td>
                     <td className="px-3 py-2">{lead.leadScore ?? '--'}</td>
                     <td className="px-3 py-2">{lead.incomeLabel ?? '--'}</td>
+                    <td className="px-3 py-2">{lead.age ?? '--'}</td>
+                    <td className="px-3 py-2">{formatDate(lead.dateOfBirth)}</td>
+                    <td className="px-3 py-2">{lead.maritalStatus ?? '--'}</td>
                     <td className="px-3 py-2">{lead.outcomeReason ?? '--'}</td>
                     <td className="max-w-[200px] px-3 py-2">{lead.note || '--'}</td>
                     <td className="px-3 py-2">{formatDateTime(lead.followUpAt)}</td>

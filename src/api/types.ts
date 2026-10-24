@@ -828,6 +828,14 @@ export type DeletedSalesLeadsFilters = Omit<SalesLeadsFilters, 'accountStatus'>
 /** Same filter shape as live sales; start/end filter activityDayUtc. */
 export type ActiveSalesLeadsFilters = SalesLeadsFilters
 
+/** Date window + pagination for matched-day users sales list. */
+export interface MatchedSalesLeadsFilters {
+  start?: IsoInstant
+  end?: IsoInstant
+  page?: number
+  size?: number
+}
+
 export interface SalesFollowUpsFilters {
   bucket?: 'due_today' | 'overdue' | 'upcoming'
   assignedToMe?: boolean

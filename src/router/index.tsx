@@ -24,6 +24,7 @@ const ActiveUsersPage = lazy(() => import('@/pages/active-users/ActiveUsersPage'
 const ActiveUsersFollowUpsPage = lazy(() => import('@/pages/active-users/ActiveUsersFollowUpsPage'))
 const ActiveUsersPerformancePage = lazy(() => import('@/pages/active-users/ActiveUsersPerformancePage'))
 const ActiveUsersLeadDetailPage = lazy(() => import('@/pages/active-users/ActiveUsersLeadDetailPage'))
+const MatchedUsersPage = lazy(() => import('@/pages/matched-users/MatchedUsersPage'))
 const DemographicsPage = lazy(() => import('@/pages/demographics/DemographicsPage'))
 const OnboardingDropoffPage = lazy(() => import('@/pages/onboarding-dropoff/OnboardingDropoffPage'))
 const UsersPage = lazy(() => import('@/pages/users/UsersPage'))
@@ -91,6 +92,7 @@ export const router = createBrowserRouter([
           { path: 'active-users/follow-ups', element: <ActiveUsersFollowUpsPage /> },
           { path: 'active-users/performance', element: <ActiveUsersPerformancePage /> },
           { path: 'active-users/:userId', element: <ActiveUsersLeadDetailPage /> },
+          { path: routes.matchedUsers.slice(1), element: <MatchedUsersPage /> },
         ],
       },
     ],

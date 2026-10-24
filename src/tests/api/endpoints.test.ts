@@ -78,6 +78,10 @@ describe('adminEndpoints', () => {
     )
   })
 
+  it('creates matched sales endpoints', () => {
+    expect(adminEndpoints.salesMatched.leads).toBe('/api/admin/sales/matched/leads')
+  })
+
   it('creates vip endpoints', () => {
     expect(adminEndpoints.vip.leads).toBe('/api/admin/vip/leads')
     expect(adminEndpoints.vip.detail('user-1')).toBe('/api/admin/vip/leads/user-1')

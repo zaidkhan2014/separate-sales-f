@@ -75,6 +75,9 @@ export const adminEndpoints = {
     savedView: (viewId: string) => `${ADMIN_API_BASE}/sales/active/saved-views/${viewId}`,
     summary: `${ADMIN_API_BASE}/sales/active/summary`,
   },
+  salesMatched: {
+    leads: `${ADMIN_API_BASE}/sales/matched/leads`,
+  },
   vip: {
     leads: `${ADMIN_API_BASE}/vip/leads`,
     detail: (userId: string) => `${ADMIN_API_BASE}/vip/leads/${userId}`,

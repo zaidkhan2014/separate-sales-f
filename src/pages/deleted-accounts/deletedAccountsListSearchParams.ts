@@ -6,6 +6,7 @@ import {
   parseSalesProfessionLabels,
 } from '@/pages/sales/salesEducationProfession'
 import { isValidMinIncomeBandId } from '@/pages/sales/salesIncomeBands'
+import { parseSalesCasteLabel, parseSalesSectLabel } from '@/pages/sales/salesSectCaste'
 import { toDatetimeLocalInput, toUtcIso } from '@/utils/date'
 
 /** sessionStorage key for last Deleted Accounts list query string (no leading `?`). */
@@ -36,6 +37,8 @@ export interface DeletedAccountsListUrlState {
   gender: string
   birthYear: string
   maritalStatus: string
+  sect: string
+  caste: string
   profileCreatedFor: string
   bio: string
   education: string[]
@@ -65,6 +68,8 @@ export const defaultDeletedAccountsListUrlState = (): DeletedAccountsListUrlStat
   gender: '',
   birthYear: '',
   maritalStatus: '',
+  sect: '',
+  caste: '',
   profileCreatedFor: '',
   bio: '',
   education: [],
@@ -145,6 +150,8 @@ export function parseDeletedAccountsListSearchParams(searchParams: URLSearchPara
     gender: searchParams.get('gender') ?? '',
     birthYear: searchParams.get('birthYear') ?? '',
     maritalStatus: parseSalesMaritalStatus(searchParams.get('maritalStatus')),
+    sect: parseSalesSectLabel(searchParams.get('sect')),
+    caste: parseSalesCasteLabel(searchParams.get('caste')),
     profileCreatedFor: parseProfileCreatedForFilter(searchParams.get('profileCreatedFor')),
     bio: parseBioFilter(searchParams.get('bio')),
     education: parseSalesEducationLabels(searchParams.getAll('education')),
@@ -178,6 +185,8 @@ export function toDeletedAccountsListSearchParams(state: DeletedAccountsListUrlS
   if (state.gender.trim()) p.set('gender', state.gender)
   if (state.birthYear.trim()) p.set('birthYear', state.birthYear.trim())
   if (state.maritalStatus.trim()) p.set('maritalStatus', state.maritalStatus)
+  if (state.sect.trim()) p.set('sect', state.sect)
+  if (state.caste.trim()) p.set('caste', state.caste)
   if (state.profileCreatedFor.trim()) p.set('profileCreatedFor', state.profileCreatedFor)
   if (state.bio.trim()) p.set('bio', state.bio)
   for (const label of state.education) {
@@ -221,6 +230,8 @@ export function deletedAccountsListStateToApiFilters(
     gender: parsed.gender.trim() || undefined,
     birthYear: birthYearForLeadsApi(parsed.birthYear),
     maritalStatus: parsed.maritalStatus.trim() || undefined,
+    sect: parsed.sect.trim() || undefined,
+    caste: parsed.caste.trim() || undefined,
     profileCreatedFor: parseProfileCreatedForFilter(parsed.profileCreatedFor) || undefined,
     bio: parseBioFilter(parsed.bio) || undefined,
     education: parsed.education.length > 0 ? parsed.education : undefined,

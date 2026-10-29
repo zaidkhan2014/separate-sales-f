@@ -91,6 +91,33 @@ describe('salesListSearchParams', () => {
     expect(parseSalesListSearchParams(new URLSearchParams('maritalStatus=Never%20married')).maritalStatus).toBe('')
   })
 
+  it('round-trips sect and caste labels in URL', () => {
+    const state = {
+      ...defaultSalesListUrlState(),
+      sect: 'Sunni (Hanafi)',
+      caste: 'Ansari',
+    }
+    expect(roundTrip(state)).toEqual(state)
+  })
+
+  it('accepts known sect/caste labels and rejects unknown', () => {
+    expect(parseSalesListSearchParams(new URLSearchParams('sect=Sunni%20(Hanafi)')).sect).toBe('Sunni (Hanafi)')
+    expect(parseSalesListSearchParams(new URLSearchParams('caste=Ansari')).caste).toBe('Ansari')
+    expect(parseSalesListSearchParams(new URLSearchParams('sect=UnknownSect')).sect).toBe('')
+    expect(parseSalesListSearchParams(new URLSearchParams('caste=unknown-slug')).caste).toBe('')
+  })
+
+  it('maps sect/caste to API filters and omits Any', () => {
+    expect(
+      salesListStateToApiFilters(
+        { ...defaultSalesListUrlState(), sect: 'Shia', caste: 'Syed' },
+        20,
+      ),
+    ).toMatchObject({ sect: 'Shia', caste: 'Syed' })
+    expect(salesListStateToApiFilters(defaultSalesListUrlState(), 20).sect).toBeUndefined()
+    expect(salesListStateToApiFilters(defaultSalesListUrlState(), 20).caste).toBeUndefined()
+  })
+
   it('maps country name to API and keeps countryIso out of API filters', () => {
     const api = salesListStateToApiFilters(
       {

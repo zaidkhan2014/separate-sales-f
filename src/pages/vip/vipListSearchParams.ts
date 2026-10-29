@@ -1,4 +1,5 @@
 import type { AdminSalesStatus, VipLeadSort, VipLeadsFilters } from '@/api/types'
+import { parseSalesCasteLabel, parseSalesSectLabel } from '@/pages/sales/salesSectCaste'
 import { toDatetimeLocalInput, toUtcIso } from '@/utils/date'
 
 /** sessionStorage key for last VIP list query string (no leading `?`). */
@@ -25,6 +26,8 @@ export interface VipListUrlState {
   followUpEnd: string
   status: 'ALL' | AdminSalesStatus
   query: string
+  sect: string
+  caste: string
   pool: '' | 'true'
   assignedToMe: '' | 'true'
   assignedToAdminId: string
@@ -39,6 +42,8 @@ export const defaultVipListUrlState = (): VipListUrlState => ({
   followUpEnd: '',
   status: 'ALL',
   query: '',
+  sect: '',
+  caste: '',
   pool: '',
   assignedToMe: '',
   assignedToAdminId: '',
@@ -71,6 +76,8 @@ export function parseVipListSearchParams(searchParams: URLSearchParams): VipList
     followUpEnd: searchParams.get('followUpEnd') ?? '',
     status,
     query: searchParams.get('query') ?? '',
+    sect: parseSalesSectLabel(searchParams.get('sect')),
+    caste: parseSalesCasteLabel(searchParams.get('caste')),
     pool: parseTriFlag(searchParams.get('pool')),
     assignedToMe: parseTriFlag(searchParams.get('assignedToMe')),
     assignedToAdminId: searchParams.get('assignedToAdminId') ?? '',
@@ -89,6 +96,8 @@ export function toVipListSearchParams(state: VipListUrlState): URLSearchParams {
   if (state.followUpEnd) p.set('followUpEnd', state.followUpEnd)
   if (state.status !== defaults.status) p.set('status', state.status)
   if (state.query) p.set('query', state.query)
+  if (state.sect.trim()) p.set('sect', state.sect)
+  if (state.caste.trim()) p.set('caste', state.caste)
   if (state.pool === 'true') p.set('pool', 'true')
   if (state.assignedToMe === 'true') p.set('assignedToMe', 'true')
   if (state.assignedToAdminId.trim()) p.set('assignedToAdminId', state.assignedToAdminId)
@@ -110,6 +119,8 @@ export function vipListStateToApiFilters(parsed: VipListUrlState, pageSize: numb
     followUpStart: toUtcIso(parsed.followUpStart),
     followUpEnd: toUtcIso(parsed.followUpEnd),
     query: parsed.query.trim() || undefined,
+    sect: parsed.sect.trim() || undefined,
+    caste: parsed.caste.trim() || undefined,
     pool: parsed.pool === 'true' ? true : undefined,
     assignedToMe: parsed.assignedToMe === 'true' ? true : undefined,
     assignedToAdminId: parsed.assignedToAdminId.trim() || undefined,

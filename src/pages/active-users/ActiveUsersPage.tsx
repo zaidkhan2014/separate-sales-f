@@ -9,6 +9,7 @@ import { LeadPhotoThumb } from '@/components/sales/LeadPhotoThumb'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { MultiSelect } from '@/components/ui/MultiSelect'
+import { SearchableSelect } from '@/components/ui/SearchableSelect'
 import { Select } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { GeoLocationFilters } from '@/components/geo/GeoLocationFilters'
@@ -32,6 +33,7 @@ import {
   INDIA_MIN_INCOME_BANDS,
   INTL_MIN_INCOME_BANDS,
 } from '@/pages/sales/salesIncomeBands'
+import { SALES_CASTE_LABELS, SALES_SECT_LABELS } from '@/pages/sales/salesSectCaste'
 import {
   ACTIVE_USERS_LIST_SEARCH_STORAGE_KEY,
   resolveActiveUsersListPreset,
@@ -274,6 +276,34 @@ export default function ActiveUsersPage() {
                     </option>
                   ))}
                 </Select>
+              </label>
+              <label className="block min-w-0 text-sm text-slate-600">
+                <span className="mb-1 block font-medium text-slate-800">Sect</span>
+                <Select
+                  id="active-filter-sect"
+                  value={parsed.sect}
+                  onChange={(event) => setFilters({ sect: event.target.value, page: 0 })}
+                  aria-label="Filter by sect"
+                >
+                  <option value="">Any</option>
+                  {SALES_SECT_LABELS.map((label) => (
+                    <option key={label} value={label}>
+                      {label}
+                    </option>
+                  ))}
+                </Select>
+              </label>
+              <label className="block min-w-0 text-sm text-slate-600">
+                <span className="mb-1 block font-medium text-slate-800">Caste</span>
+                <SearchableSelect
+                  id="active-filter-caste"
+                  aria-label="Filter by caste"
+                  options={SALES_CASTE_LABELS.map((label) => ({ value: label, label }))}
+                  value={parsed.caste}
+                  placeholder="Search caste…"
+                  emptyLabel="Any"
+                  onChange={(caste) => setFilters({ caste, page: 0 })}
+                />
               </label>
               <label className="block min-w-0 text-sm text-slate-600">
                 <span className="mb-1 block font-medium text-slate-800">Created for</span>

@@ -798,6 +798,10 @@ export interface SalesLeadsFilters {
   birthYear?: number
   /** Exact match on basicDetails.maritalStatus (trimmed, case-sensitive) */
   maritalStatus?: string
+  /** Exact match on faithPractice.sect (label) */
+  sect?: string
+  /** Exact match on faithPractice.caste (label) */
+  caste?: string
   /** SELF | NON_SELF — omit for Any */
   profileCreatedFor?: ProfileCreatedForFilter
   /** AVAILABLE | NOT_AVAILABLE — omit for Any */
@@ -943,6 +947,10 @@ export interface VipLeadsFilters {
   followUpStart?: IsoInstant
   followUpEnd?: IsoInstant
   query?: string
+  /** Exact match on faithPractice.sect (label) */
+  sect?: string
+  /** Exact match on faithPractice.caste (label) */
+  caste?: string
   assignedToAdminId?: string
   assignedToMe?: boolean
   pool?: boolean

@@ -139,4 +139,24 @@ describe('deletedAccountsListSearchParams', () => {
   it('rejects unknown bio values', () => {
     expect(parseDeletedAccountsListSearchParams(new URLSearchParams('bio=available')).bio).toBe('')
   })
+
+  it('round-trips sect and caste labels and maps to API; omits Any', () => {
+    const state = {
+      ...defaultDeletedAccountsListUrlState(),
+      sect: 'Sunni (Hanafi)',
+      caste: 'Ansari',
+    }
+    expect(roundTrip(state)).toEqual(state)
+    expect(deletedAccountsListStateToApiFilters(state, 20)).toMatchObject({
+      sect: 'Sunni (Hanafi)',
+      caste: 'Ansari',
+    })
+    expect(deletedAccountsListStateToApiFilters(defaultDeletedAccountsListUrlState(), 20).sect).toBeUndefined()
+    expect(deletedAccountsListStateToApiFilters(defaultDeletedAccountsListUrlState(), 20).caste).toBeUndefined()
+  })
+
+  it('rejects unknown sect/caste values', () => {
+    expect(parseDeletedAccountsListSearchParams(new URLSearchParams('sect=Nope')).sect).toBe('')
+    expect(parseDeletedAccountsListSearchParams(new URLSearchParams('caste=slug-id')).caste).toBe('')
+  })
 })

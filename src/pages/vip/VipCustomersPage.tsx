@@ -7,12 +7,14 @@ import { VipLeadLink } from '@/components/common/VipLeadLink'
 import { LeadPhotoThumb } from '@/components/sales/LeadPhotoThumb'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { SearchableSelect } from '@/components/ui/SearchableSelect'
 import { Select } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { AdminSalesStatus, VipLeadSort } from '@/api/types'
 import { useAdminVipLeads } from '@/hooks/api/useAdminVip'
 import { cn } from '@/lib/cn'
 import { ADMIN_SALES_STATUS_FILTER_OPTIONS } from '@/pages/sales/salesConstants'
+import { SALES_CASTE_LABELS, SALES_SECT_LABELS } from '@/pages/sales/salesSectCaste'
 import {
   VIP_LIST_SEARCH_STORAGE_KEY,
   activeVipListPreset,
@@ -212,6 +214,34 @@ export default function VipCustomersPage() {
                 value={parsed.query}
                 onChange={(event) => setFilters({ query: event.target.value, page: 0 })}
                 aria-label="Search VIP leads"
+              />
+            </label>
+            <label className="block min-w-0 text-sm text-slate-600">
+              <span className="mb-1 block font-medium text-slate-800">Sect</span>
+              <Select
+                id="vip-filter-sect"
+                value={parsed.sect}
+                onChange={(event) => setFilters({ sect: event.target.value, page: 0 })}
+                aria-label="Filter by sect"
+              >
+                <option value="">Any</option>
+                {SALES_SECT_LABELS.map((label) => (
+                  <option key={label} value={label}>
+                    {label}
+                  </option>
+                ))}
+              </Select>
+            </label>
+            <label className="block min-w-0 text-sm text-slate-600">
+              <span className="mb-1 block font-medium text-slate-800">Caste</span>
+              <SearchableSelect
+                id="vip-filter-caste"
+                aria-label="Filter by caste"
+                options={SALES_CASTE_LABELS.map((label) => ({ value: label, label }))}
+                value={parsed.caste}
+                placeholder="Search caste…"
+                emptyLabel="Any"
+                onChange={(caste) => setFilters({ caste, page: 0 })}
               />
             </label>
             <label className="block min-w-0 text-sm text-slate-600">

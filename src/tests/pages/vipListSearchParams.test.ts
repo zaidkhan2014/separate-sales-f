@@ -48,6 +48,30 @@ describe('vipListSearchParams', () => {
     expect(api.size).toBe(20)
   })
 
+  it('round-trips sect and caste labels in URL', () => {
+    const state = {
+      ...defaultVipListUrlState(),
+      sect: 'Sunni (Hanafi)',
+      caste: 'Ansari',
+    }
+    expect(roundTrip(state)).toEqual(state)
+  })
+
+  it('accepts known sect/caste labels and rejects unknown', () => {
+    expect(parseVipListSearchParams(new URLSearchParams('sect=Shia')).sect).toBe('Shia')
+    expect(parseVipListSearchParams(new URLSearchParams('caste=Syed')).caste).toBe('Syed')
+    expect(parseVipListSearchParams(new URLSearchParams('sect=Nope')).sect).toBe('')
+    expect(parseVipListSearchParams(new URLSearchParams('caste=slug-id')).caste).toBe('')
+  })
+
+  it('maps sect/caste to API filters and omits Any', () => {
+    expect(
+      vipListStateToApiFilters({ ...defaultVipListUrlState(), sect: 'Sufi', caste: 'Memon' }, 20),
+    ).toMatchObject({ sect: 'Sufi', caste: 'Memon' })
+    expect(vipListStateToApiFilters(defaultVipListUrlState(), 20).sect).toBeUndefined()
+    expect(vipListStateToApiFilters(defaultVipListUrlState(), 20).caste).toBeUndefined()
+  })
+
   it('vipRequestedRangePreset returns datetime-local start/end', () => {
     const range = vipRequestedRangePreset(7)
     expect(range.start).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)
